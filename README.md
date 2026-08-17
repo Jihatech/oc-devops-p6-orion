@@ -11,7 +11,7 @@
 | Phase | Contenu | Statut |
 |---|---|---|
 | 1 | Audit, veille, normalisation du pipeline | ✅ **Terminée** |
-| 2 | Pipeline CI + scripts d'automatisation | ⏳ À venir |
+| 2 | Pipeline CI + scripts d'automatisation | ✅ **Terminée** — [pipeline vert](https://github.com/Jihatech/oc-devops-p6-orion/actions) |
 | 3 | DevSecOps — SonarQube, Trivy, plans de tests et de sécurité | ⏳ À venir |
 | 4 | Conteneurisation, Kubernetes + Helm, releases et rollback | ⏳ À venir |
 | 5 | Terraform, Ansible, ELK, métriques DORA | ⏳ À venir |
@@ -92,4 +92,73 @@ Artefacts de livraison : **2 images Docker** (`front`, `back`) publiées sur **G
 
 ---
 
-> Les instructions de déploiement reproductibles seront ajoutées au fil des phases 2 à 6.
+## Pipeline d'intégration continue
+
+Défini dans [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — 8 jobs, **durée mesurée :
+1 min 45 s**.
+
+| Étape | Jobs | Contrôles |
+|---|---|---|
+| ① lint | `lint-front`, `lint-scripts` | ESLint · ShellCheck (version épinglée) · syntaxe Python · bits exécutables |
+| ② build | `build-front`, `build-back` | Bundle Angular de production · JAR Spring Boot — publiés en artefacts |
+| ③ test | `test-front`, `test-back`, `test-scripts` | Karma + LCOV · JUnit + JaCoCo · 27 tests bash_unit · **cycle sauvegarde → restauration vérifié** |
+| — | `notification` | Synthèse Markdown dans l'onglet Actions, issue de suivi sur échec |
+
+Les étapes ④ *security* (SonarQube, Trivy) et ⑤ *package* (GHCR, semantic-release) arrivent aux
+phases 3 et 4.
+
+**Résultats de la dernière exécution** : 10 tests (8 front + 2 back), 100 % de réussite ·
+couverture backend **65,9 %** · couverture frontend **30,8 %** · 0 erreur ESLint (12 avertissements
+suivis) · 0 défaut ShellCheck.
+
+## Scripts d'automatisation
+
+Chaque script porte en tête sa documentation complète : **BUT, FONCTIONNEMENT, PARAMÈTRES,
+CONDITIONS D'EXÉCUTION**, exemples et codes de sortie. `--aide` l'affiche.
+
+| Script | Rôle |
+|---|---|
+| [`scripts/lib/commun.sh`](scripts/lib/commun.sh) | Bibliothèque partagée — journalisation, prérequis, **fonctions pures testées** |
+| [`scripts/install-deps.sh`](scripts/install-deps.sh) | Installation déterministe (`npm ci`, résolution Gradle), mode hors ligne |
+| [`scripts/run-tests.sh`](scripts/run-tests.sh) | Tests + collecte des rapports JUnit, LCOV et JaCoCo |
+| [`scripts/deploy-build.sh`](scripts/deploy-build.sh) | Déploiement Docker avec **test de fumée et rollback automatique** |
+| [`scripts/backup.sh`](scripts/backup.sh) | Sauvegarde vérifiée (SHA-256 + manifeste) **et restauration** |
+| [`scripts/notify.py`](scripts/notify.py) | Synthèse de pipeline — GitHub Summary, issue sur échec (sans dépendance externe) |
+
+### Utilisation locale (reproductible)
+
+```bash
+# 1. Dépendances des deux composants
+./scripts/install-deps.sh
+
+# 2. Tests avec couverture, rapports dans reports/
+./scripts/run-tests.sh --sortie reports
+
+# 3. Synthèse lisible des résultats
+python3 scripts/notify.py --statut succes --rapports reports --canal console
+
+# 4. Sauvegarde (rétention : 7 archives) puis restauration vérifiée
+./scripts/backup.sh --retention 7
+./scripts/backup.sh --mode restauration \
+    --archive backups/microcrm_<horodatage>.tar.gz --cible /tmp/restaure
+
+# 5. Déploiement local Docker, avec test de fumée et rollback si échec
+./scripts/deploy-build.sh --environnement dev
+```
+
+### Contrôles qualité des scripts
+
+```bash
+shellcheck --shell=bash --severity=style --external-sources \
+    scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh   # 0 défaut
+
+bash_unit scripts/tests/test_commun.sh                 # 27 tests
+```
+
+La **décision** de purge des sauvegardes est isolée dans une fonction pure, séparée de son
+**exécution**, et couverte par des tests de cas limites (rétention nulle, négative, non numérique,
+égalité stricte) : un défaut à cet endroit détruirait des sauvegardes.
+
+---
+
+> Les instructions de déploiement Kubernetes seront ajoutées en phase 4.

@@ -107,7 +107,98 @@ j'ai dû abandonner après vérification).
 
 ## Phase 2 — Pipeline CI et scripts d'automatisation
 
-*(à compléter)*
+**Période** : 17/08/2026
+**Livrables** : `.github/workflows/ci.yml`, `scripts/` (6 fichiers), outillage qualité front/back
+
+### Démarche suivie
+
+| # | Étape | Détail |
+|---|---|---|
+| 1 | **Vérifier avant d'écrire** | Build Gradle exécuté en local **avant** toute écriture de pipeline : succès, JAR de 47 Mo, 2 classes de test. On ne construit pas une CI sur un build dont on ignore s'il passe. |
+| 2 | **Bibliothèque partagée d'abord** | `scripts/lib/commun.sh` écrite en premier, en isolant les fonctions **pures** (sans effet de bord) — ce sont elles qui seront testables unitairement. |
+| 3 | **Scripts** | 5 scripts, chacun avec l'en-tête exigé : BUT, FONCTIONNEMENT, PARAMÈTRES, CONDITIONS D'EXÉCUTION, exemples et codes de sortie documentés. |
+| 4 | **Tests avant pipeline** | 27 tests bash_unit écrits et exécutés en local, ShellCheck 0.11.0 passé en `--severity=style`, avant le premier push. |
+| 5 | **Outillage qualité** | ESLint (front), JaCoCo (back), LCOV et JUnit XML — les formats que SonarQube consommera en phase 3. |
+| 6 | **Pipeline** | 8 jobs, versions épinglées, permissions minimales, appel des scripts plutôt que duplication de leur logique. |
+| 7 | **Itération jusqu'au vert** | 4 exécutions successives, chaque échec corrigé à la racine et transformé en garde-fou. |
+
+### Décision de conception structurante
+
+**Le pipeline appelle les scripts ; il ne réimplémente pas leur logique.** `install-deps.sh` et
+`run-tests.sh` sont invoqués tels quels par les jobs. Conséquences :
+
+- un développeur reproduit **exactement** le comportement de la CI sur son poste ;
+- une correction apportée à un script bénéficie simultanément aux deux environnements ;
+- l'exigence « scripts d'automatisation » n'est pas satisfaite par des scripts décoratifs posés à côté
+  d'un pipeline qui ferait le vrai travail — ils **sont** le pipeline.
+
+### Les 4 échecs de pipeline et ce qu'ils ont produit
+
+Ces incidents sont conservés ici intégralement : ils sont la meilleure réponse aux questions
+« quels défis avez-vous rencontrés ? » et « quelle méthodologie ? ».
+
+| # | Échec | Cause réelle | Correction — et garde-fou ajouté |
+|---|---|---|---|
+| 1 | `lint-scripts` rouge (SC2015) | `A && B \|\| C` dans `deploy-build.sh` : ce n'est pas un if-then-else, C peut s'exécuter alors que A est vrai | Bloc `if` explicite. **Et surtout** : le runner embarquait ShellCheck **0.9.0**, mon poste **0.11.0** — le défaut était invisible en local. J'ai **épinglé la version dans la CI**, ce qui aligne poste et runner. C'est l'application à moi-même du principe P5 que je reprochais au pipeline d'origine. |
+| 2 | `build-back` en **exit 126** | `app/back/gradlew` versionné en `100644` : le bit exécutable a été perdu à l'intégration sous Windows, qui ne le porte pas | `git update-index --chmod=+x`. **Garde-fou** : le job de lint vérifie désormais le bit exécutable de tous les scripts **et de `gradlew`**, avec le message de correction exact. L'incident ne peut plus se reproduire silencieusement. |
+| 3 | `test-scripts` rouge | `bash_unit --version` n'existe pas : l'option est `-v` | Option corrigée. Rappel utile : ce que je crois d'un outil doit être vérifié contre l'outil, pas contre ma mémoire. |
+| 4 | `test-front` rouge **alors que les 8 tests passaient** | Mon agrégateur JUnit lisait l'attribut `skipped`, que Gradle émet mais que karma-junit-reporter **omet**. La chaîne vide injectée en arithmétique donnait « operand expected » | Extraction isolée dans la fonction **pure** `attribut_xml` (retourne 0 sur attribut absent), **couverte par 4 nouveaux tests bash_unit**. Le défaut ne peut plus revenir sans faire échouer les tests. |
+
+**Ce que ces incidents montrent** : trois des quatre étaient **invisibles sur le poste de
+développement** et n'ont été révélés que par la CI. C'est précisément l'argument en faveur de
+l'automatisation chez Orion, où tout est aujourd'hui exécuté à la main sur des postes.
+
+### Découverte : la couverture réelle du projet
+
+Première mesure jamais réalisée sur ce code (l'audit avait relevé qu'aucune couverture n'était
+collectée) :
+
+| Composant | Couverture | Lecture |
+|---|---|---|
+| Backend (instructions) | **65,9 %** | Au-dessus du seuil de 60 % retenu |
+| Frontend (lignes) | **30,8 %** | En dessous — 33,1 % d'instructions, **9,5 % de branches** |
+
+Le frontend est donc le point faible réel, alors que l'équipe se déclare « Bonne » en Angular et
+Karma — et le backend, où elle se dit Débutante, est mieux couvert. **La perception de l'équipe est
+inverse de la mesure.** C'est exactement ce qu'un système de mesure sert à révéler, et cela alimentera
+le rapport de performance.
+
+### Arbitrage assumé : ESLint ne bloque pas sur la dette antérieure
+
+ESLint a remonté **13 défauts dans le code fourni** dès sa première exécution — ce qui valide la
+demande de l'équipe Dev. Décision : n'en corriger qu'un (import `Router` mort, risque nul) et
+**basculer en avertissement** les 12 autres (accessibilité des libellés, `no-explicit-any`).
+
+Motif : ce sont des défauts **antérieurs au projet**, dont la correction relève du développement
+applicatif, hors périmètre. Les rendre bloquants aurait imposé de modifier le code fourni ou de
+désactiver la règle. L'avertissement les garde **visibles et comptés** sans bloquer. C'est la même
+logique que le seuil de couverture à 60 % (docs/03, §5.1) : **un garde-fou inatteignable est un
+garde-fou qui sera désactivé.**
+
+### Résultat mesuré
+
+| Indicateur | Valeur |
+|---|---|
+| Exécution verte | [31994739494](https://github.com/Jihatech/oc-devops-p6-orion/actions/runs/31994739494) — 8/8 jobs |
+| Durée totale | **1 min 45 s** (cible du plan : moins de 12 min) |
+| Tests exécutés | **10** (8 front + 2 back), 100 % de réussite |
+| Tests unitaires de scripts | **27** bash_unit |
+| ShellCheck | 0 défaut en `--severity=style` |
+| ESLint | 0 erreur, 12 avertissements suivis |
+
+### Usage de l'IA en phase 2
+
+| Usage | Nature |
+|---|---|
+| Rédaction des scripts et du workflow | **Assistée par IA**, sur une conception que j'ai arrêtée (découpage, fonctions pures, parité poste/CI) |
+| Diagnostic des 4 échecs | **Mien** — lecture des journaux d'exécution réels, puis correction à la racine |
+| Vérification | **Exécution réelle systématique** : bash_unit, ShellCheck, ESLint, Gradle, et 4 exécutions de pipeline |
+
+**Incident méthodologique à signaler** : j'ai d'abord cru ShellCheck défaillant parce qu'il ne
+signalait rien sur `foo=1 ; echo $foo`. C'était **mon test de contrôle qui était faux** — ShellCheck
+ne déclenche pas SC2086 quand la valeur assignée est un littéral sans espace ni glob. Vérifié avec un
+cas indiscutable (`cd $1`), l'outil fonctionnait parfaitement. Leçon retenue et appliquée depuis :
+**un test de contrôle doit lui-même être validé avant d'accuser l'outil.**
 
 ## Phase 3 — DevSecOps
 
