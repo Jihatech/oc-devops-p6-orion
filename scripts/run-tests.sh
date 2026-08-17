@@ -130,6 +130,13 @@ tester_front() {
     # Les rapports sont collectés même en cas d'échec : ce sont eux qui
     # permettent de diagnostiquer, il serait absurde de les perdre.
     mkdir -p "$sortie/front"
+    if [[ -f "$repertoire/coverage/microcrm/junit-front.xml" ]]; then
+        mkdir -p "$sortie/front/junit"
+        cp "$repertoire/coverage/microcrm/junit-front.xml" "$sortie/front/junit/"
+        log_ok "résultats JUnit frontend collectés"
+    else
+        log_avert "rapport JUnit frontend introuvable — le décompte de tests sera incomplet"
+    fi
     if [[ -f "$repertoire/coverage/microcrm/lcov.info" ]]; then
         cp "$repertoire/coverage/microcrm/lcov.info" "$sortie/front/lcov.info"
         log_ok "couverture frontend collectée : $sortie/front/lcov.info"
@@ -182,9 +189,9 @@ tester_back() {
     fi
 }
 
-# Agrège les résultats JUnit XML du backend pour un affichage chiffré.
-# Volontairement tolérant : un résumé indisponible ne doit jamais faire
-# échouer une exécution dont les tests, eux, sont passés.
+# Agrège tous les rapports JUnit XML collectés (frontend ET backend) pour un
+# affichage chiffré. Volontairement tolérant : un résumé indisponible ne doit
+# jamais faire échouer une exécution dont les tests, eux, sont passés.
 resumer_junit() {
     local repertoire="$1"
     [[ -d "$repertoire" ]] || return 0
@@ -197,11 +204,11 @@ resumer_junit() {
         echecs=$((echecs + $(sed -n 's/.*failures="\([0-9]*\)".*/\1/p' <<<"$ligne" || echo 0)))
         erreurs=$((erreurs + $(sed -n 's/.*errors="\([0-9]*\)".*/\1/p' <<<"$ligne" || echo 0)))
         ignores=$((ignores + $(sed -n 's/.*skipped="\([0-9]*\)".*/\1/p' <<<"$ligne" || echo 0)))
-    done < <(find "$repertoire" -name 'TEST-*.xml' 2>/dev/null)
+    done < <(find "$repertoire" -name '*.xml' ! -name 'jacoco*.xml' 2>/dev/null)
 
     [[ $total -eq 0 ]] && return 0
-    log_info "backend : $total test(s) — $echecs échec(s), $erreurs erreur(s), $ignores ignoré(s)"
-    resume_ci "Tests backend (détail)" "$total exécutés, $echecs échec(s)"
+    log_info "total : $total test(s) — $echecs échec(s), $erreurs erreur(s), $ignores ignoré(s)"
+    resume_ci "Tests (détail)" "$total exécutés, $echecs échec(s)"
 }
 
 principal() {
@@ -223,7 +230,7 @@ principal() {
         esac
     done < <(composants_de "$COMPOSANT")
 
-    resumer_junit "$SORTIE/back/junit"
+    resumer_junit "$SORTIE"
 
     local duree=$(( $(date +%s) - debut ))
     log_titre "Terminé en $(duree_lisible "$duree")"
