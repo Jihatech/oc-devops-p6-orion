@@ -200,10 +200,12 @@ resumer_junit() {
     while IFS= read -r fichier; do
         local ligne
         ligne=$(grep -o '<testsuite [^>]*' "$fichier" 2>/dev/null | head -1) || continue
-        total=$((total   + $(sed -n 's/.*tests="\([0-9]*\)".*/\1/p'    <<<"$ligne" || echo 0)))
-        echecs=$((echecs + $(sed -n 's/.*failures="\([0-9]*\)".*/\1/p' <<<"$ligne" || echo 0)))
-        erreurs=$((erreurs + $(sed -n 's/.*errors="\([0-9]*\)".*/\1/p' <<<"$ligne" || echo 0)))
-        ignores=$((ignores + $(sed -n 's/.*skipped="\([0-9]*\)".*/\1/p' <<<"$ligne" || echo 0)))
+        # attribut_xml retourne 0 si l'attribut est absent : karma-junit-reporter
+        # omet « skipped », que Gradle émet toujours.
+        total=$((total     + $(attribut_xml "$ligne" tests)))
+        echecs=$((echecs   + $(attribut_xml "$ligne" failures)))
+        erreurs=$((erreurs + $(attribut_xml "$ligne" errors)))
+        ignores=$((ignores + $(attribut_xml "$ligne" skipped)))
     done < <(find "$repertoire" -name '*.xml' ! -name 'jacoco*.xml' 2>/dev/null)
 
     [[ $total -eq 0 ]] && return 0

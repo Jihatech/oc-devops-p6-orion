@@ -193,6 +193,23 @@ archives_a_purger() {
     done
 }
 
+# [PURE] attribut_xml <ligne> <nom>
+#   Extrait la valeur numérique d'un attribut XML depuis une ligne de balise,
+#   et retourne 0 lorsque l'attribut est ABSENT.
+#
+#   ⚠️ Ce comportement par défaut est le cœur de la fonction. Les producteurs
+#   de rapports JUnit ne sont pas homogènes : Gradle émet `skipped="0"`, tandis
+#   que karma-junit-reporter omet purement et simplement l'attribut. Une
+#   extraction naïve renvoie alors une chaîne vide qui, injectée dans une
+#   expression arithmétique, provoque « operand expected » et fait échouer le
+#   job alors que TOUS les tests sont passés — défaut effectivement rencontré
+#   sur le pipeline, d'où cette fonction et ses tests.
+attribut_xml() {
+    local ligne="${1:-}" nom="${2:-}" valeur
+    valeur=$(sed -n "s/.*${nom}=\"\([0-9]*\)\".*/\1/p" <<<"$ligne" | head -1)
+    printf '%s\n' "${valeur:-0}"
+}
+
 # [PURE] valider_environnement <valeur>
 #   Valide un nom d'environnement de déploiement.
 #   dev | staging | prod — alignés sur les values Helm (phase 4).

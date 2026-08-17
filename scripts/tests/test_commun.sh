@@ -188,6 +188,41 @@ b_2.tar.gz" "$resultat" "seule la plus récente doit survivre"
 }
 
 # -----------------------------------------------------------------------------
+# attribut_xml — régression : « operand expected » sur attribut absent
+# -----------------------------------------------------------------------------
+
+test_attribut_xml_lit_un_attribut_present() {
+    local ligne='<testsuite name="Suite" tests="8" failures="0" errors="0" skipped="2">'
+    assert_equals "8" "$(attribut_xml "$ligne" tests)"
+    assert_equals "0" "$(attribut_xml "$ligne" failures)"
+    assert_equals "2" "$(attribut_xml "$ligne" skipped)"
+}
+
+test_attribut_xml_retourne_zero_si_attribut_absent() {
+    # Cas réel : karma-junit-reporter n'émet pas « skipped », contrairement à
+    # Gradle. La chaîne vide qui en résultait cassait l'arithmétique et faisait
+    # échouer un job dont tous les tests étaient pourtant passés.
+    local ligne='<testsuite name="Chrome Headless" tests="8" errors="0" failures="0" time="0.12">'
+    assert_equals "0" "$(attribut_xml "$ligne" skipped)" \
+        "un attribut absent doit valoir 0, jamais une chaîne vide"
+    # Vérifie que la valeur est bien utilisable en arithmétique.
+    local somme=$(( 0 + $(attribut_xml "$ligne" skipped) ))
+    assert_equals "0" "$somme" "le résultat doit être injectable dans une expression arithmétique"
+}
+
+test_attribut_xml_gere_une_ligne_vide() {
+    assert_equals "0" "$(attribut_xml "" tests)"
+    assert_equals "0" "$(attribut_xml "<testsuite/>" tests)"
+}
+
+test_attribut_xml_ne_confond_pas_les_attributs_de_prefixe_proche() {
+    # « tests » ne doit pas capter la valeur de « testsuite-id ».
+    local ligne='<testsuite tests="5" failures="1">'
+    assert_equals "5" "$(attribut_xml "$ligne" tests)"
+    assert_equals "1" "$(attribut_xml "$ligne" failures)"
+}
+
+# -----------------------------------------------------------------------------
 # verifier_commande
 # -----------------------------------------------------------------------------
 
