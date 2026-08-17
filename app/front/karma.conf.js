@@ -10,6 +10,10 @@ module.exports = function (config) {
       require("karma-chrome-launcher"),
       require("karma-jasmine-html-reporter"),
       require("karma-coverage"),
+      // Ajouté (P6) : produit un rapport JUnit XML, seul format que la CI et
+      // scripts/notify.py savent agréger. Sans lui, la synthèse de pipeline
+      // ne comptait que les tests backend et sous-estimait la suite réelle.
+      require("karma-junit-reporter"),
       require("@angular-devkit/build-angular/plugins/karma"),
     ],
     client: {
@@ -38,7 +42,12 @@ module.exports = function (config) {
         { type: "lcovonly", subdir: ".", file: "lcov.info" },
       ],
     },
-    reporters: ["progress", "kjhtml"],
+    junitReporter: {
+      outputDir: require("path").join(__dirname, "./coverage/microcrm"),
+      outputFile: "junit-front.xml",
+      useBrowserName: false,
+    },
+    reporters: ["progress", "kjhtml", "junit"],
     browsers: ["ChromeHeadlessNoSandbox", "ChromeHeadless", "Chrome"],
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
