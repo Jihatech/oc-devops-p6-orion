@@ -236,7 +236,11 @@ effectuer_rollback() {
 
     if [[ -z "$precedente" ]]; then
         log_avert "aucun état N-1 connu pour $composant : rollback impossible (premier déploiement)"
-        [[ $SIMULATION -eq 0 ]] && docker rm -f "$conteneur" >/dev/null 2>&1 || true
+        # Pas d'état antérieur à restaurer : on retire le conteneur défaillant
+        # plutôt que de laisser tourner une version qui ne répond pas.
+        if [[ $SIMULATION -eq 0 ]]; then
+            docker rm -f "$conteneur" >/dev/null 2>&1 || true
+        fi
         return 1
     fi
 
