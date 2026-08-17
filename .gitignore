@@ -1,0 +1,37 @@
+# --- Frontend (Angular) ---
+app/front/node_modules/
+app/front/dist/
+app/front/.angular/
+app/front/coverage/
+
+# --- Backend (Gradle / Spring Boot) ---
+app/back/.gradle/
+app/back/build/
+app/back/bin/
+
+# --- Terraform ---
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# --- Rapports & artefacts locaux ---
+reports/
+backups/
+*.log
+
+# --- Secrets : AUCUN credential ne doit être versionné ---
+.env
+.env.*
+*.pem
+*.key
+*.p12
+kubeconfig
+secrets.yaml
+!helm/**/secrets.example.yaml
+
+# --- Éditeurs / OS ---
+.idea/
+.DS_Store
+Thumbs.db
