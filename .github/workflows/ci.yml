@@ -52,6 +52,7 @@ env:
   JAVA_VERSION: "17"
   JAVA_DISTRIBUTION: "temurin"
   BASH_UNIT_VERSION: "v2.3.3"
+  SHELLCHECK_VERSION: "0.11.0"
 
 jobs:
   # ===========================================================================
@@ -86,11 +87,22 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
 
-      # ShellCheck est préinstallé sur l'image ubuntu-24.04 : aucune étape
-      # d'installation, donc aucune dépendance réseau supplémentaire.
+      # ShellCheck est préinstallé sur l'image ubuntu-24.04, mais dans une
+      # version qui suit les mises à jour de l'image (0.9.0 à ce jour). S'y
+      # fier ferait dépendre le verdict du lint d'un composant hors de notre
+      # contrôle — exactement le défaut de reproductibilité reproché au
+      # pipeline d'origine (constat C4, principe P5). La version est donc
+      # épinglée, et elle est identique à celle utilisée sur les postes.
+      - name: Installer ShellCheck (version épinglée)
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
+            | tar -xJ -C /tmp
+          sudo install "/tmp/shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
+          shellcheck --version
+
       - name: Vérifier les scripts Bash
         run: |
-          shellcheck --version
           shellcheck --shell=bash --severity=style --external-sources \
             scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh
 
