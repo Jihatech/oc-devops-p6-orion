@@ -1,0 +1,19 @@
+# Normalisation des fins de ligne.
+# Développement sous Windows, exécution des scripts sous Linux (runners CI, conteneurs) :
+# les fichiers exécutés côté Linux DOIVENT rester en LF, sinon "bad interpreter: ^M".
+* text=auto eol=lf
+
+*.sh        text eol=lf
+*.py        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.tf        text eol=lf
+Dockerfile  text eol=lf
+gradlew     text eol=lf
+*.bat       text eol=crlf
+
+# Binaires
+*.png   binary
+*.jpg   binary
+*.pdf   binary
+*.jar   binary
