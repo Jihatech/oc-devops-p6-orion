@@ -27,7 +27,16 @@ module.exports = function (config) {
     coverageReporter: {
       dir: require("path").join(__dirname, "./coverage/microcrm"),
       subdir: ".",
-      reporters: [{ type: "html" }, { type: "text-summary" }],
+      // Modifié (P6) : ajout du rapport "lcovonly". L'audit (constat C6) a
+      // relevé que karma-coverage était installé et configuré, mais ne
+      // produisait que du HTML et un résumé texte — deux formats qu'aucun
+      // outil de qualité ne sait consommer. Le format LCOV est celui attendu
+      // par SonarQube (phase 3) et par scripts/notify.py.
+      reporters: [
+        { type: "html" },
+        { type: "text-summary" },
+        { type: "lcovonly", subdir: ".", file: "lcov.info" },
+      ],
     },
     reporters: ["progress", "kjhtml"],
     browsers: ["ChromeHeadlessNoSandbox", "ChromeHeadless", "Chrome"],
