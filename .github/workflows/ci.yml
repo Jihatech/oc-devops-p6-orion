@@ -109,10 +109,16 @@ jobs:
       - name: Vérifier la syntaxe Python
         run: python3 -m py_compile scripts/notify.py
 
-      - name: Vérifier que les scripts sont exécutables
+      # Garde-fou ajouté après incident : le projet est développé sous Windows,
+      # qui ne porte pas le bit exécutable. `app/back/gradlew` avait ainsi été
+      # versionné en 644, faisant échouer le build backend en « exit 126 :
+      # permission denied » — un défaut invisible sur le poste de
+      # développement. Le pipeline le détecte désormais dès l'étape de lint,
+      # avec le message de correction exact.
+      - name: Vérifier que les fichiers exécutables le sont réellement
         run: |
           manquants=0
-          for f in scripts/*.sh scripts/tests/*.sh; do
+          for f in scripts/*.sh scripts/tests/*.sh app/back/gradlew; do
             if [ ! -x "$f" ]; then
               echo "::error file=$f::le bit exécutable est absent (git update-index --chmod=+x $f)"
               manquants=$((manquants + 1))
@@ -261,7 +267,7 @@ jobs:
           curl -sSL -o /tmp/bash_unit \
             "https://raw.githubusercontent.com/pgrange/bash_unit/${BASH_UNIT_VERSION}/bash_unit"
           chmod +x /tmp/bash_unit
-          /tmp/bash_unit --version
+          /tmp/bash_unit -v
 
       - name: Exécuter les tests unitaires des scripts
         run: /tmp/bash_unit scripts/tests/test_commun.sh
