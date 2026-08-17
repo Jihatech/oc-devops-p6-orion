@@ -277,7 +277,7 @@ flowchart TD
 
     PUSH --> S1
 
-    subgraph S1["① LINT — < 1 min"]
+    subgraph S1["① LINT — moins d'1 min"]
         L1["ESLint<br/>(front)"]
         L2["Gradle check<br/>(back)"]
         L3["ShellCheck<br/>(scripts)"]
