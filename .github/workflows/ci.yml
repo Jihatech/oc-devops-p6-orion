@@ -1,0 +1,320 @@
+# =============================================================================
+# Pipeline d'intégration continue — MicroCRM (Orion)
+# =============================================================================
+#
+# BUT
+#   Mettre en œuvre la chaîne CI définie dans docs/03-normalisation-plan-ci.md.
+#   Périmètre de la phase 2 : les étapes ① lint, ② build et ③ test.
+#   Les étapes ④ security (SonarQube, Trivy) et ⑤ package (GHCR,
+#   semantic-release) sont ajoutées aux phases 3 et 4, conformément à la
+#   trajectoire incrémentale du §11 du plan.
+#
+# PRINCIPES APPLIQUÉS (docs/03, §1)
+#   P1 fail fast     — le lint (secondes) précède le build et les tests (minutes)
+#   P4 traçabilité   — chaque exécution produit des artefacts et un résumé daté
+#   P5 reproductible — runner, actions, Node et JDK épinglés à une version exacte
+#
+# PARITÉ POSTE ↔ CI
+#   Les jobs n'exécutent PAS de commandes ad hoc : ils appellent les mêmes
+#   scripts que ceux utilisés en local (`scripts/*.sh`). Un développeur
+#   reproduit donc exactement le comportement du pipeline sur sa machine, et
+#   une correction apportée au script bénéficie aux deux environnements.
+#   C'est la réponse directe au constat C5 de l'audit (logique dupliquée entre
+#   les jobs, dérive entre poste et CI).
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Sécurité : permissions minimales par défaut (docs/03, §8).
+# Aucun job n'obtient plus de droits que ce qu'il consomme réellement ; seul
+# le job de notification est élevé, et uniquement sur `issues`.
+permissions:
+  contents: read
+
+# Une nouvelle exécution sur la même référence annule la précédente : inutile
+# de payer un pipeline complet pour un commit déjà remplacé.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Versions épinglées (P5). Node 20 est la ligne LTS supportée par Angular 17
+  # (^18.13 || ^20.9) : le pipeline d'origine utilisait l'image `node` sans
+  # étiquette, ce qui rendait le build non reproductible (constat C4).
+  NODE_VERSION: "20.19.0"
+  JAVA_VERSION: "17"
+  JAVA_DISTRIBUTION: "temurin"
+  BASH_UNIT_VERSION: "v2.3.3"
+
+jobs:
+  # ===========================================================================
+  # ÉTAPE ① — LINT (cible : moins d'une minute)
+  # ===========================================================================
+
+  lint-front:
+    name: "① Lint · frontend (ESLint)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: app/front/package-lock.json
+
+      - name: Installer les dépendances
+        run: ./scripts/install-deps.sh --composant front
+
+      - name: Analyser le code (ESLint)
+        working-directory: app/front
+        run: npm run lint
+
+  lint-scripts:
+    name: "① Lint · scripts (ShellCheck)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      # ShellCheck est préinstallé sur l'image ubuntu-24.04 : aucune étape
+      # d'installation, donc aucune dépendance réseau supplémentaire.
+      - name: Vérifier les scripts Bash
+        run: |
+          shellcheck --version
+          shellcheck --shell=bash --severity=style --external-sources \
+            scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh
+
+      - name: Vérifier la syntaxe Python
+        run: python3 -m py_compile scripts/notify.py
+
+      - name: Vérifier que les scripts sont exécutables
+        run: |
+          manquants=0
+          for f in scripts/*.sh scripts/tests/*.sh; do
+            if [ ! -x "$f" ]; then
+              echo "::error file=$f::le bit exécutable est absent (git update-index --chmod=+x $f)"
+              manquants=$((manquants + 1))
+            fi
+          done
+          exit $manquants
+
+  # ===========================================================================
+  # ÉTAPE ② — BUILD
+  # Barrière de stage : le build n'est engagé que si TOUT le lint est vert
+  # (docs/03, §4.6).
+  # ===========================================================================
+
+  build-front:
+    name: "② Build · frontend (Angular)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [lint-front, lint-scripts]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: app/front/package-lock.json
+
+      - name: Installer les dépendances
+        run: ./scripts/install-deps.sh --composant front
+
+      - name: Construire le bundle de production
+        working-directory: app/front
+        run: npx ng build --configuration production
+
+      - name: Publier le bundle
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: bundle-front
+          path: app/front/dist/
+          retention-days: 7
+
+  build-back:
+    name: "② Build · backend (Spring Boot)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [lint-front, lint-scripts]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installer le JDK
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      # `-x test` : la compilation et les tests sont deux questions distinctes
+      # (docs/03, §4.2). Le pipeline d'origine les confondait, ce qui faisait
+      # remonter une erreur de compilation comme un échec de test.
+      - name: Compiler et assembler le JAR
+        working-directory: app/back
+        run: ./gradlew build -x test --console=plain
+
+      - name: Publier le JAR
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: jar-back
+          path: app/back/build/libs/*.jar
+          retention-days: 7
+
+  # ===========================================================================
+  # ÉTAPE ③ — TEST
+  # ===========================================================================
+
+  test-front:
+    name: "③ Test · frontend (Karma + couverture)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: [build-front]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: app/front/package-lock.json
+
+      - name: Installer les dépendances
+        run: ./scripts/install-deps.sh --composant front
+
+      # Chrome est préinstallé sur l'image ubuntu-24.04. Le script le détecte
+      # lui-même : le pipeline d'origine codait en dur un chemin propre à
+      # l'image `cypress/browsers`, inutilisable ailleurs.
+      - name: Exécuter les tests avec couverture
+        run: ./scripts/run-tests.sh --composant front --sortie reports
+
+      - name: Publier les rapports frontend
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: rapports-front
+          path: reports/
+          retention-days: 7
+
+  test-back:
+    name: "③ Test · backend (JUnit + JaCoCo)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: [build-back]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installer le JDK
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      - name: Exécuter les tests avec couverture
+        run: ./scripts/run-tests.sh --composant back --sortie reports
+
+      - name: Publier les rapports backend
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: rapports-back
+          path: reports/
+          retention-days: 7
+
+  test-scripts:
+    name: "③ Test · scripts (bash_unit)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: [lint-scripts]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      # Version épinglée (P5) : `master` ferait dépendre le résultat des
+      # tests d'un dépôt tiers susceptible de changer sans préavis.
+      - name: Installer bash_unit
+        run: |
+          curl -sSL -o /tmp/bash_unit \
+            "https://raw.githubusercontent.com/pgrange/bash_unit/${BASH_UNIT_VERSION}/bash_unit"
+          chmod +x /tmp/bash_unit
+          /tmp/bash_unit --version
+
+      - name: Exécuter les tests unitaires des scripts
+        run: /tmp/bash_unit scripts/tests/test_commun.sh
+
+      # Vérifie que la sauvegarde fonctionne réellement de bout en bout :
+      # création, empreinte, manifeste, puis restauration et comparaison.
+      # Un back-up jamais restauré n'est pas un back-up (docs/03).
+      - name: Vérifier le cycle sauvegarde → restauration
+        run: |
+          set -euo pipefail
+          ./scripts/backup.sh --source docs --source scripts \
+            --destination /tmp/backups --retention 3
+          archive=$(find /tmp/backups -name 'microcrm_*.tar.gz' | head -1)
+          echo "Archive produite : $archive"
+          test -f "$archive.sha256" || { echo "empreinte SHA-256 absente"; exit 1; }
+          test -f "$archive.json"   || { echo "manifeste absent"; exit 1; }
+          ./scripts/backup.sh --mode restauration --archive "$archive" --cible /tmp/restaure
+          diff -r docs /tmp/restaure/docs
+          echo "Cycle sauvegarde → restauration vérifié : contenu identique."
+
+  # ===========================================================================
+  # NOTIFICATION — synthèse des résultats du pipeline
+  # ===========================================================================
+
+  notification:
+    name: "Notification des résultats"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: [lint-front, lint-scripts, build-front, build-back, test-front, test-back, test-scripts]
+    # `always()` : la notification doit précisément se produire quand le
+    # pipeline échoue — c'est son cas d'usage principal.
+    if: always()
+    permissions:
+      contents: read
+      # Élévation limitée à ce seul job et à ce seul périmètre, afin
+      # d'autoriser l'ouverture d'une issue de suivi en cas d'échec.
+      issues: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Récupérer les rapports des jobs de test
+        uses: actions/download-artifact@v7.0.0
+        with:
+          path: artefacts
+          pattern: rapports-*
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Déterminer le statut global
+        id: statut
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') }}" = "true" ]; then
+            echo "valeur=echec" >> "$GITHUB_OUTPUT"
+          elif [ "${{ contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "valeur=instable" >> "$GITHUB_OUTPUT"
+          else
+            echo "valeur=succes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publier la synthèse
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/notify.py \
+            --statut "${{ steps.statut.outputs.valeur }}" \
+            --rapports artefacts \
+            --canal resume --canal console --canal issue \
+            --titre "Pipeline CI — MicroCRM"
