@@ -3,6 +3,10 @@ plugins {
 	id 'org.springframework.boot' version '3.2.5'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'com.adarshr.test-logger' version '4.0.0'
+	// Ajouté (P6) : mesure de la couverture de tests. L'audit (constat C7) a
+	// relevé qu'aucune couverture n'était mesurée côté backend, alors que
+	// c'est la stack sur laquelle l'équipe se déclare Débutante.
+	id 'jacoco'
 }
 
 group = 'com.openclassroom.devops.orion'
@@ -17,7 +21,8 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Corrigé (P6) : 'spring-boot-starter-data-jpa' était déclaré deux fois
+	// (constat A3 de l'audit). Doublon supprimé.
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'ro.polak:spring-boot-data-fixtures:0.2.0'
@@ -28,4 +33,19 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // Le rapport de couverture est produit systématiquement à la suite des
+    // tests : la CI n'a ainsi jamais à réexécuter la suite pour l'obtenir.
+    finalizedBy jacocoTestReport
+}
+
+// Ajouté (P6) — Rapport de couverture JaCoCo.
+// Le format XML est indispensable : c'est le seul que SonarQube sait lire
+// (phase 3). Le format HTML est conservé pour la consultation locale.
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
 }
