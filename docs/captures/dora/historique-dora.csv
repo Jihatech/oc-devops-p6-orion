@@ -1,0 +1,2 @@
+date,fenetre_jours,deploiements,deploiements_par_semaine,niveau_frequence,lead_time_median_h,niveau_lead_time,taux_echec_pct,niveau_taux_echec,mttr_median_h,niveau_mttr
+2026-08-18T19:27:59Z,90,3,12.71,n/d,36.74,High,44.4,Low,0.11,Elite

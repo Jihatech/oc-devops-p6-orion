@@ -1,0 +1,255 @@
+{
+  "depot": "Jihatech/oc-devops-p6-orion",
+  "branche": "main",
+  "workflow": "ci.yml",
+  "fenetre_jours": 90,
+  "calcule_le": "2026-08-18T19:27:59Z",
+  "volumetrie": {
+    "executions": 18,
+    "releases": 3,
+    "commits": 45
+  },
+  "deployment_frequency": {
+    "deploiements": 3,
+    "periode_jours": 1.65,
+    "par_semaine": 12.71,
+    "par_jour": 1.82,
+    "representatif": false,
+    "niveau": "n/d",
+    "reference": "periode d'observation trop courte (1.7 j) pour un taux hebdomadaire"
+  },
+  "lead_time": {
+    "commits_livres": 45,
+    "commits_non_livres": 0,
+    "mediane_heures": 36.74,
+    "moyenne_heures": 22.52,
+    "min_heures": 0.0,
+    "max_heures": 37.51,
+    "niveau": "High",
+    "reference": "moins d'une semaine",
+    "detail": [
+      {
+        "commit": "fb42f9dc",
+        "message": "chore(release): publier la version 1.1.1 [skip ci]",
+        "ecrit_le": "2026-08-18T19:24:01Z",
+        "livre_par": "v1.1.1",
+        "heures": 0.0
+      },
+      {
+        "commit": "793b2b09",
+        "message": "fix(preuves): versionner les traces d'execution et interdire les liens",
+        "ecrit_le": "2026-08-18T19:18:00Z",
+        "livre_par": "v1.1.1",
+        "heures": 0.1
+      },
+      {
+        "commit": "a8c16445",
+        "message": "docs(journal): consigner la phase 4",
+        "ecrit_le": "2026-08-18T17:32:14Z",
+        "livre_par": "v1.1.1",
+        "heures": 1.86
+      },
+      {
+        "commit": "8364d40a",
+        "message": "chore(release): publier la version 1.1.0 [skip ci]",
+        "ecrit_le": "2026-08-18T17:30:21Z",
+        "livre_par": "v1.1.0",
+        "heures": 0.0
+      },
+      {
+        "commit": "04840634",
+        "message": "docs: mettre a jour le README pour la phase 4",
+        "ecrit_le": "2026-08-18T17:24:13Z",
+        "livre_par": "v1.1.0",
+        "heures": 0.1
+      },
+      {
+        "commit": "03e7f26a",
+        "message": "feat(helm): ajouter les migrations par composant en hook pre-upgrade",
+        "ecrit_le": "2026-08-18T17:23:19Z",
+        "livre_par": "v1.1.0",
+        "heures": 0.12
+      },
+      {
+        "commit": "e5ef4322",
+        "message": "chore(release): publier la version 1.0.0 [skip ci]",
+        "ecrit_le": "2026-08-18T17:19:22Z",
+        "livre_par": "v1.0.0",
+        "heures": 0.0
+      },
+      {
+        "commit": "97f8cf52",
+        "message": "fix(ci): corriger l'installation des greffons semantic-release",
+        "ecrit_le": "2026-08-18T17:13:16Z",
+        "livre_par": "v1.0.0",
+        "heures": 0.1
+      },
+      {
+        "commit": "349dcb7d",
+        "message": "fix(scripts): restaurer le bit executable de rollback.sh et exclure le",
+        "ecrit_le": "2026-08-18T17:05:05Z",
+        "livre_par": "v1.0.0",
+        "heures": 0.24
+      },
+      {
+        "commit": "61438792",
+        "message": "feat(ci): ajouter l'etape package et le versionnement automatise",
+        "ecrit_le": "2026-08-18T17:03:51Z",
+        "livre_par": "v1.0.0",
+        "heures": 0.26
+      },
+      {
+        "commit": "d878fd3e",
+        "message": "feat(helm): deployer MicroCRM sur Kubernetes et automatiser le rollbac",
+        "ecrit_le": "2026-08-18T16:15:09Z",
+        "livre_par": "v1.0.0",
+        "heures": 1.07
+      },
+      {
+        "commit": "1204df40",
+        "message": "feat(docker): durcir les images et les separer par composant",
+        "ecrit_le": "2026-08-18T15:58:32Z",
+        "livre_par": "v1.0.0",
+        "heures": 1.35
+      },
+      {
+        "commit": "066a1a6e",
+        "message": "docs(preuves): consigner la phase 3 et la comparaison avant/apres",
+        "ecrit_le": "2026-08-18T02:21:10Z",
+        "livre_par": "v1.0.0",
+        "heures": 14.97
+      },
+      {
+        "commit": "6b391ebc",
+        "message": "fix(qualite): corriger les 4 defauts remontes par SonarQube",
+        "ecrit_le": "2026-08-18T02:13:34Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.1
+      },
+      {
+        "commit": "1f57b3c2",
+        "message": "docs(preuves): verser l'analyse SonarQube de reference (etat AVANT)",
+        "ecrit_le": "2026-08-18T02:13:34Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.1
+      },
+      {
+        "commit": "bc6d7a90",
+        "message": "fix(securite): corriger un echec du scan lorsqu'aucune vulnerabilite n",
+        "ecrit_le": "2026-08-18T02:06:56Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.21
+      },
+      {
+        "commit": "094c88d5",
+        "message": "fix(front): regenerer le verrou npm sans --legacy-peer-deps",
+        "ecrit_le": "2026-08-18T01:59:35Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.33
+      },
+      {
+        "commit": "c0e1073f",
+        "message": "docs: rediger le plan de tests et le plan de securite",
+        "ecrit_le": "2026-08-18T01:48:16Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.52
+      },
+      {
+        "commit": "31b6f032",
+        "message": "fix(securite): fiabiliser la recuperation du verdict SonarQube",
+        "ecrit_le": "2026-08-18T01:48:16Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.52
+      },
+      {
+        "commit": "324c3696",
+        "message": "feat(securite): tracer 12 acceptations de risque explicites et datees",
+        "ecrit_le": "2026-08-18T01:48:15Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.52
+      },
+      {
+        "commit": "a5f89953",
+        "message": "fix(securite): corriger deux vulnerabilites critiques des dependances",
+        "ecrit_le": "2026-08-18T01:48:15Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.52
+      },
+      {
+        "commit": "b063dd57",
+        "message": "feat(securite): integrer SonarQube et les controles Trivy dans le pipe",
+        "ecrit_le": "2026-08-18T01:39:03Z",
+        "livre_par": "v1.0.0",
+        "heures": 15.67
+      },
+      {
+        "commit": "43dd77c6",
+        "message": "docs: consigner la phase 2 dans le journal et documenter le pipeline",
+        "ecrit_le": "2026-08-17T04:34:49Z",
+        "livre_par": "v1.0.0",
+        "heures": 36.74
+      },
+      {
+        "commit": "db816dd3",
+        "message": "fix(scripts): traiter les attributs JUnit absents dans l'agregation",
+        "ecrit_le": "2026-08-17T04:31:00Z",
+        "livre_par": "v1.0.0",
+        "heures": 36.81
+      },
+      {
+        "commit": "ab02b0fc",
+        "message": "feat(scripts): agreger les rapports JUnit des deux composants",
+        "ecrit_le": "2026-08-17T04:27:46Z",
+        "livre_par": "v1.0.0",
+        "heures": 36.86
+      }
+    ]
+  },
+  "change_failure_rate": {
+    "executions_terminees": 18,
+    "echecs": 8,
+    "succes": 10,
+    "taux_pourcent": 44.4,
+    "niveau": "Low",
+    "reference": "plus de 15 %"
+  },
+  "mttr": {
+    "incidents_resolus": 4,
+    "incident_en_cours": false,
+    "mediane_heures": 0.11,
+    "moyenne_heures": 0.19,
+    "max_heures": 0.46,
+    "niveau": "Elite",
+    "reference": "moins d'une heure",
+    "detail": [
+      {
+        "echec_le": "2026-08-17T04:19:58Z",
+        "echec_run": 31994089531,
+        "retabli_le": "2026-08-17T04:24:10Z",
+        "retabli_run": 31994345779,
+        "heures": 0.07
+      },
+      {
+        "echec_le": "2026-08-17T04:27:34Z",
+        "echec_run": 31994546956,
+        "retabli_le": "2026-08-17T04:30:48Z",
+        "retabli_run": 31994739494,
+        "heures": 0.05
+      },
+      {
+        "echec_le": "2026-08-18T01:38:54Z",
+        "echec_run": 32088964377,
+        "retabli_le": "2026-08-18T02:06:46Z",
+        "retabli_run": 32090656006,
+        "heures": 0.46
+      },
+      {
+        "echec_le": "2026-08-18T17:03:32Z",
+        "echec_run": 32163585787,
+        "retabli_le": "2026-08-18T17:12:55Z",
+        "retabli_run": 32164415378,
+        "heures": 0.16
+      }
+    ]
+  }
+}

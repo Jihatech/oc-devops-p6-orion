@@ -1,0 +1,4 @@
+{"@timestamp": "2026-08-18T19:27:59Z", "service": "microcrm", "depot": "Jihatech/oc-devops-p6-orion", "indicateur": "deployment_frequency", "valeur": 12.71, "unite": "par_semaine", "niveau": "n/d"}
+{"@timestamp": "2026-08-18T19:27:59Z", "service": "microcrm", "depot": "Jihatech/oc-devops-p6-orion", "indicateur": "lead_time", "valeur": 36.74, "unite": "heures", "niveau": "High"}
+{"@timestamp": "2026-08-18T19:27:59Z", "service": "microcrm", "depot": "Jihatech/oc-devops-p6-orion", "indicateur": "change_failure_rate", "valeur": 44.4, "unite": "pourcent", "niveau": "Low"}
+{"@timestamp": "2026-08-18T19:27:59Z", "service": "microcrm", "depot": "Jihatech/oc-devops-p6-orion", "indicateur": "mttr", "valeur": 0.11, "unite": "heures", "niveau": "Elite"}
