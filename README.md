@@ -14,7 +14,7 @@
 | 2 | Pipeline CI + scripts d'automatisation | ✅ **Terminée** — [pipeline vert](https://github.com/Jihatech/oc-devops-p6-orion/actions) |
 | 3 | DevSecOps — SonarQube, Trivy, plans de tests et de sécurité | ✅ **Terminée** |
 | 4 | Conteneurisation, Kubernetes + Helm, releases et rollback | ✅ **Terminée** |
-| 5 | Terraform, Ansible, ELK, métriques DORA | ⏳ À venir |
+| 5 | Terraform, Ansible, ELK, métriques DORA | ✅ **Terminée** |
 | 6 | Consolidation des livrables finaux | ⏳ À venir |
 
 ## L'application industrialisée
@@ -64,6 +64,9 @@ ghcr.io/jihatech/oc-devops-p6-orion/orion-microcrm-front:1.0.0
 | [`docs/captures/sonarqube/`](docs/captures/sonarqube/) | **Preuves d'analyse et comparaison avant/après** |
 | [`docs/captures/images/`](docs/captures/images/) | **Durcissement des images** — 31→0 et 55→0 vulnérabilités |
 | [`docs/captures/rollback/`](docs/captures/rollback/) | **Rollback et migrations** — démonstrations exécutées sur Minikube |
+| [`docs/captures/iac/`](docs/captures/iac/) | **Terraform et Ansible** — apply, idempotence, lint au profil production |
+| [`docs/captures/elk/`](docs/captures/elk/) | **Stack ELK** — index, tableaux de bord, alertes, données agrégées |
+| [`docs/captures/dora/`](docs/captures/dora/) | **Indicateurs DORA** — mesurés sur l'historique réel du dépôt |
 | [`docs/JOURNAL_IA.md`](docs/JOURNAL_IA.md) | Méthodologie, décisions et arbitrages, usage de l'IA |
 
 ## Chaîne cible en un coup d'œil
@@ -148,6 +151,9 @@ CONDITIONS D'EXÉCUTION**, exemples et codes de sortie. `--aide` l'affiche.
 | [`scripts/sonar-analyse.sh`](scripts/sonar-analyse.sh) | Analyse SonarQube — serveur éphémère, jeton généré à l'exécution |
 | [`scripts/sonar-report.py`](scripts/sonar-report.py) | Quality gate et export des preuves d'analyse |
 | [`scripts/rollback.sh`](scripts/rollback.sh) | Retour à la version N-1, **avec vérification du service** |
+| [`scripts/dora-metrics.py`](scripts/dora-metrics.py) | Les 4 indicateurs DORA depuis l'API GitHub — JSON, CSV, Markdown, NDJSON |
+| [`scripts/elk-setup.sh`](scripts/elk-setup.sh) | Configuration reproductible d'ELK — modèle, vues, tableaux de bord, alertes |
+| [`scripts/verifier-liens.py`](scripts/verifier-liens.py) | Interdit les liens morts dans la documentation |
 
 ### Utilisation locale (reproductible)
 

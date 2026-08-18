@@ -456,9 +456,144 @@ Dockerfile backend. Je l'ai remplacé par les digests réellement résolus via `
 inspect` avant toute construction. Un digest plausible mais faux est pire qu'un tag : il donne
 l'apparence de la rigueur sans en avoir la substance.
 
-## Phase 5 — IaC, monitoring, DORA
+## Phase 5 — IaC, monitoring et métriques DORA
 
-*(à compléter)*
+**Période** : 18/08/2026
+**Livrables** : `terraform/`, `ansible/`, `elk/`, `scripts/dora-metrics.py`,
+`scripts/elk-setup.sh`, `scripts/verifier-liens.py`, preuves dans `docs/captures/`
+
+### Correctif d'ouverture : des preuves invisibles
+
+Avant d'entamer la phase, un écart signalé au checkpoint 4 : la règle `*.log` du `.gitignore` avait
+silencieusement exclu **trois** traces d'exécution de la démonstration de rollback (une de plus que
+signalé), alors que le README les référençait. Les fichiers étaient présents sur le poste — donc
+tout paraissait normal en local — mais absents du dépôt public : les liens pointaient dans le vide.
+
+Correction de la cause, pas du symptôme :
+
+- exception `!docs/captures/**` dans `.gitignore`, pour que toute preuve future soit versionnée
+  sans qu'on ait à y penser ;
+- `scripts/verifier-liens.py` vérifie que chaque lien relatif de la documentation pointe vers un
+  fichier **suivi par Git**, et non simplement présent sur le disque — c'est cette distinction qui
+  rend le contrôle efficace ;
+- le pipeline exécute ce contrôle dès l'étape de lint.
+
+Le contrôle a été vérifié **dans les deux sens** : il signale bien le lien cassé quand le fichier
+est désuivi, et passe une fois versionné.
+
+### Indicateurs DORA — et le chiffre que j'ai refusé de publier tel quel
+
+Mesures sur l'historique réel (18 exécutions, 3 releases, 45 commits) :
+
+| Indicateur | Valeur | Niveau |
+|---|---|---|
+| Délai de livraison (médiane) | **36,7 h** | High |
+| Taux d'échec des changements | **44,4 %** | Low |
+| Délai de rétablissement (médiane) | **7 min** | Elite |
+| Fréquence de déploiement | 12,7 / semaine | ⚪ **non représentatif** |
+
+**Le premier calcul donnait 236 déploiements par semaine.** En prenant pour origine la première
+release — publiée deux heures plus tôt —, trois releases divisées par deux heures produisaient un
+nombre mathématiquement exact et complètement faux, qui plaçait le projet au niveau « Elite ».
+
+Deux corrections : la période court désormais depuis la **première activité observée** (commit ou
+release), et tout résultat portant sur moins de 14 jours est **explicitement marqué non
+représentatif**. La valeur reste publiée — masquer une mesure serait pire que la nuancer.
+
+**Le taux d'échec de 44,4 % est réel et je l'assume.** Ces 18 exécutions couvrent la *construction*
+du pipeline, pas l'exploitation d'une chaîne stabilisée : les échecs sont ceux du travail
+d'ingénierie, tous corrigés et transformés en garde-fous. C'est une **ligne de base** contre
+laquelle comparer, pas un verdict.
+
+### Terraform et Ansible — poser la frontière avant de coder
+
+La répartition annoncée en phase 1 (`docs/02`, §6) a été tenue :
+
+| Outil | Responsabilité | Concrètement |
+|---|---|---|
+| **Terraform** | Ce qui **existe** | Namespaces, quotas, plages de limites, politiques réseau |
+| **Ansible** | Ce qui est **configuré dedans** | Prérequis, déploiement, sauvegarde vérifiée |
+
+**Les releases Helm ne sont volontairement PAS gérées par Terraform.** Elles changent plusieurs fois
+par jour : les y confier ferait de chaque livraison une modification d'infrastructure et brouillerait
+la lecture de `terraform plan`.
+
+Terraform a été **appliqué puis vérifié idempotent** (« No changes »), et les quotas sont effectifs :
+le déploiement en cours consomme 2/10 pods et 448 Mi/1 Gi. Le namespace `orion-dev`, créé à la main
+en phase 4, a été **importé** dans l'état plutôt que détruit — l'application tournait dedans.
+
+Une honnêteté à signaler : les `NetworkPolicy` sont déclarées et correctes, mais **Minikube avec le
+pilote Docker ne les applique pas**, faute de greffon réseau compatible. C'est documenté dans le
+module — le type d'écart qu'il vaut mieux écrire que découvrir en production.
+
+Côté Ansible, `ansible-lint` au profil **production** a remonté deux violations (nom de variable
+réservé, pipe sans `pipefail`), corrigées. Puis j'ai trouvé à la relecture un **troisième défaut que
+le lint ne voit pas** : le renommage de `namespace` en `namespace_cible` avait laissé une référence
+dans une expression Jinja, qui aurait échoué à l'exécution.
+
+### ELK — trois obstacles, dont un structurant
+
+| # | Symptôme | Cause | Correction |
+|---|---|---|---|
+| 1 | Filebeat refusait de démarrer | Filebeat 8 crée un **data stream** par défaut, incompatible avec les index classiques choisis pour séparer journaux et indicateurs | Modèle d'index repris en main — ce qui permet en prime de **déclarer les types de champs**, un champ numérique inféré comme texte étant inagrégeable |
+| 2 | Journaux de pods rejetés | Parseur figé sur `format: cri`, alors que **Minikube avec le pilote Docker journalise au format Docker** | `format: auto` |
+| 3 | **Aucune agrégation possible** | nginx journalisait en texte « combined » : une fois indexée, la ligne est une chaîne indivisible | **Journalisation JSON** (`log_format json_orion`) |
+
+**Le troisième est le plus important, et c'est la leçon de la phase** : il n'existe pas
+d'observabilité sans données structurées **à la source**. Aucune configuration Kibana n'aurait
+permis de compter des codes HTTP noyés dans du texte libre. La correction n'est pas dans l'outil de
+monitoring — elle est dans l'application.
+
+Résultat vérifié : **375 documents de pods**, 90 réponses 200, 30 erreurs 404, journaux ventilés par
+composant (`front` 320, `back` 49, `back-migration` 6). Le Job de migration apparaît comme un
+composant à part entière : on peut retrouver après coup pourquoi un déploiement a été bloqué.
+
+### Alertes : des seuils différenciés, et pourquoi
+
+| Règle | Seuil | Intention |
+|---|---|---|
+| Erreurs 5xx | **> 0** | Aucune tolérance : une seule 5xx est un incident |
+| Rafale 4xx | > 20 / 5 min | Tolère l'erreur isolée, détecte le balayage |
+| Lenteur | > 5 requêtes > 1 s / 5 min | Tolère le pic, détecte la dégradation installée |
+
+Un seuil trop bas produit du bruit, et **une alerte qui crie tout le temps finit ignorée** — ce qui
+revient à ne pas avoir d'alerte.
+
+Limite assumée : aucune action de notification n'est attachée. Brancher un courriel ou un webhook
+exigerait des credentials externes, hors périmètre d'une démonstration locale.
+
+### Les tableaux de bord sont générés, pas cliqués
+
+Les objets Kibana sont produits par `scripts/generer-tableaux-bord.py`, versionnés en NDJSON et
+importés par `scripts/elk-setup.sh`. Un tableau de bord construit à la souris n'existe que dans le
+volume de la machine qui l'a construit : volume perdu, tout est perdu, et personne ne peut le
+reproduire. C'est précisément le travail manuel non traçable que le projet vise à éliminer
+(faiblesse f3).
+
+### Résultats mesurés
+
+| Indicateur | Valeur |
+|---|---|
+| Exécution verte | [32179969507](https://github.com/Jihatech/oc-devops-p6-orion/actions/runs/32179969507) — **13/13 jobs** |
+| Terraform | 8 ressources, `apply` puis **idempotence confirmée** |
+| Ansible | 3 playbooks, `ansible-lint` profil **production** : 0 violation |
+| ELK | 3 vues, 5 visualisations, 1 tableau de bord, **3 alertes activées** |
+| Journaux centralisés | **375 documents** de pods, agrégables par code, URI, composant |
+| DORA | 4 indicateurs calculés sur données réelles, exportés en JSON/CSV/Markdown/NDJSON |
+
+### Usage de l'IA en phase 5
+
+| Usage | Nature |
+|---|---|
+| Rédaction des configurations et des scripts | **Assistée par IA**, sur une conception que j'ai arrêtée |
+| Conventions de calcul DORA | **Miennes** — documentées avec les alternatives écartées |
+| Diagnostic des 3 obstacles ELK | **Mien** — lecture des journaux internes de Filebeat, puis des documents indexés |
+| Vérification | **Exécution réelle** : Terraform appliqué, playbooks lintés au profil production, stack ELK interrogée par API, trafic généré pour produire de vraies données |
+
+**Point de méthode.** Le calcul DORA aberrant n'a été détecté que parce que j'ai **regardé le
+résultat au lieu de le publier**. 236 déploiements par semaine était un nombre parfaitement formaté,
+issu d'un code sans bug — l'erreur était dans la définition de la période, pas dans l'implémentation.
+Un script qui produit un chiffre ne garantit pas que le chiffre veuille dire quelque chose.
 
 ## Phase 6 — Consolidation des livrables
 
