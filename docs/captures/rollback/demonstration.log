@@ -1,0 +1,77 @@
+===== DÉMONSTRATION DE ROLLBACK — 2026-08-18T16:08:10Z =====
+
+--- 1. État initial : version 1.0.0 en service ---
+microcrm-back-c776cdcc9-5pftr     true   orion-microcrm-back:1.0.0
+microcrm-front-76dd897dc6-pjtlb   true   orion-microcrm-front:1.0.0
+REVISION	UPDATED                 	STATUS  	CHART         	APP VERSION	DESCRIPTION     
+1       	Tue Aug 18 12:04:53 2026	deployed	microcrm-0.1.0	0.1.0      	Install complete
+
+--- 2. Déploiement de la version 1.1.0 (porteuse d'une régression) ---
+$ helm upgrade microcrm helm/microcrm -n orion-dev -f values-dev.yaml --set image.tag=1.1.0 --wait --timeout 120s
+level=WARN msg="upgrade failed" name=microcrm error="resource Deployment/orion-dev/microcrm-back not ready. status: InProgress, message: Pending termination: 1\ncontext deadline exceeded"
+Error: UPGRADE FAILED: resource Deployment/orion-dev/microcrm-back not ready. status: InProgress, message: Pending termination: 1
+context deadline exceeded
+code de sortie helm : 1
+
+--- 3. État pendant l'échec ---
+microcrm-back-76d7bf8c99-x8lmr    false   Running   0     orion-microcrm-back:1.1.0
+microcrm-back-c776cdcc9-5pftr     true    Running   0     orion-microcrm-back:1.0.0
+microcrm-front-86db977c76-9x8cr   true    Running   0     orion-microcrm-front:1.1.0
+
+Cause (journal du pod en echec) :
+Error: Invalid or corrupt jarfile /app/application.jar
+
+helm history :
+REVISION	UPDATED                 	STATUS  	CHART         	APP VERSION	DESCRIPTION                                                                                                                          
+1       	Tue Aug 18 12:04:53 2026	deployed	microcrm-0.1.0	0.1.0      	Install complete                                                                                                                     
+2       	Tue Aug 18 12:08:17 2026	failed  	microcrm-0.1.0	0.1.0      	Upgrade "microcrm" failed: resource Deployment/orion-dev/microcrm-back not ready. status: InProgress, message: Pending termination...
+
+--- 4. Disponibilité du service PENDANT l'échec ---
+Le déploiement a échoué, mais l'ancien pod 1.0.0 sert toujours le trafic
+(stratégie RollingUpdate avec maxUnavailable: 0) :
+  requête 1 -> /healthz=200  /api/persons=200
+  requête 2 -> /healthz=200  /api/persons=200
+  requête 3 -> /healthz=200  /api/persons=200
+
+=> AUCUNE interruption de service. La régression a été confinée au pod
+   défaillant, qui n'a jamais reçu de trafic faute d'être « prêt ».
+
+--- 5. Rollback automatisé : ./scripts/rollback.sh ---
+
+=== Rollback — release « microcrm » (namespace orion-dev) ===
+[INFO]  historique de la release :
+    REVISION	UPDATED                 	STATUS  	CHART         	APP VERSION	DESCRIPTION                                                                                                                          
+    1       	Tue Aug 18 12:04:53 2026	deployed	microcrm-0.1.0	0.1.0      	Install complete                                                                                                                     
+    2       	Tue Aug 18 12:08:17 2026	failed  	microcrm-0.1.0	0.1.0      	Upgrade "microcrm" failed: resource Deployment/orion-dev/microcrm-back not ready. status: InProgress, message: Pending termination...
+[INFO]  état AVANT rollback :
+    microcrm-back-76d7bf8c99-x8lmr    false   Running   orion-microcrm-back:1.1.0
+    microcrm-back-c776cdcc9-5pftr     true    Running   orion-microcrm-back:1.0.0
+    microcrm-front-86db977c76-9x8cr   true    Running   orion-microcrm-front:1.1.0
+[INFO]  révision cible déduite : 1 (dernière révision saine)
+
+=== Exécution du rollback vers la révision 1 ===
+    Rollback was a success! Happy Helming!
+[OK]    rollback Helm effectué
+[INFO]  état APRÈS rollback :
+    microcrm-back-c776cdcc9-5pftr     true   Running   orion-microcrm-back:1.0.0
+    microcrm-front-76dd897dc6-b2flw   true   Running   orion-microcrm-front:1.0.0
+    microcrm-front-86db977c76-9x8cr   true   Running   orion-microcrm-front:1.1.0
+[INFO]  historique après rollback :
+    REVISION	UPDATED                 	STATUS    	CHART         	APP VERSION	DESCRIPTION                                                                                                                          
+    1       	Tue Aug 18 12:04:53 2026	superseded	microcrm-0.1.0	0.1.0      	Install complete                                                                                                                     
+    2       	Tue Aug 18 12:08:17 2026	failed    	microcrm-0.1.0	0.1.0      	Upgrade "microcrm" failed: resource Deployment/orion-dev/microcrm-back not ready. status: InProgress, message: Pending termination...
+    3       	Tue Aug 18 12:11:08 2026	deployed  	microcrm-0.1.0	0.1.0      	Rollback to 1                                                                                                                        
+[INFO]  test de fumée sur le service microcrm-front
+[OK]    service fonctionnel (frontend OK, API disponible)
+
+=== Rollback vérifié en 18s ===
+
+--- 6. État final stabilisé ---
+microcrm-back-c776cdcc9-5pftr     true   Running   orion-microcrm-back:1.0.0
+microcrm-front-76dd897dc6-b2flw   true   Running   orion-microcrm-front:1.0.0
+
+Version annotée sur les déploiements :
+  microcrm-back -> 1.0.0
+  microcrm-front -> 1.0.0
+
+===== FIN DE LA DÉMONSTRATION =====

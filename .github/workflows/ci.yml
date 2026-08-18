@@ -113,7 +113,17 @@ jobs:
             scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh
 
       - name: Vérifier la syntaxe Python
-        run: python3 -m py_compile scripts/notify.py
+        run: python3 -m py_compile scripts/*.py
+
+      # Garde-fou ajouté après incident : la règle « *.log » du .gitignore
+      # avait silencieusement exclu les traces d'exécution de la démonstration
+      # de rollback, alors que le README les référençait. Les fichiers étaient
+      # présents sur le poste — donc tout paraissait normal en local — mais
+      # absents du dépôt public : les liens pointaient dans le vide.
+      # Le contrôle porte sur les fichiers SUIVIS par Git, pas sur ceux
+      # présents sur le disque : c'est ce qui le rend efficace.
+      - name: Vérifier que la documentation ne contient aucun lien mort
+        run: python3 scripts/verifier-liens.py
 
       # Garde-fou ajouté après incident : le projet est développé sous Windows,
       # qui ne porte pas le bit exécutable. `app/back/gradlew` avait ainsi été

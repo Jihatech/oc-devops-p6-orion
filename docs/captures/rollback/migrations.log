@@ -1,0 +1,45 @@
+===== MIGRATIONS PAR COMPOSANT — 2026-08-18T17:22:02Z =====
+
+--- 1. Mise a jour AVEC hook de migration (version 1.0.0) ---
+
+  helm rollback microcrm -n orion-dev
+  ./scripts/rollback.sh --release microcrm --namespace orion-dev
+
+Job de migration execute :
+microcrm-back-migration   1     2026-08-18T17:21:42Z
+
+Journal du Job :
+    === Migration du composant back — version 1.0.0 ===
+    Base de données : HSQLDB en memoire (schema genere par Hibernate)
+    Aucune migration a appliquer (HSQLDB en memoire).
+    Verification de l'integrite de l'artefact :
+      artefact valide
+    === Migration terminee avec succes ===
+
+--- 2. Mise a jour vers 1.1.0 (artefact corrompu) : la migration doit BLOQUER ---
+$ helm upgrade ... --set image.tag=1.1.0 --wait --timeout 120s
+level=WARN msg="upgrade failed" name=microcrm error="pre-upgrade hooks failed: resource Job/orion-dev/microcrm-back-migration not ready. status: Failed, message: Job Failed. failed: 2/1"
+Error: UPGRADE FAILED: pre-upgrade hooks failed: resource Job/orion-dev/microcrm-back-migration not ready. status: Failed, message: Job Failed. failed: 2/1
+code helm=1
+
+Journal du Job de migration en echec :
+    === Migration du composant back — version 1.1.0 ===
+    Base de données : HSQLDB en memoire (schema genere par Hibernate)
+    Aucune migration a appliquer (HSQLDB en memoire).
+    Verification de l'integrite de l'artefact :
+      ERREUR : artefact illisible ou corrompu
+
+--- 3. Etat des pods : AUCUN n'a ete remplace ---
+microcrm-back-c776cdcc9-5pftr     true    orion-microcrm-back:1.0.0
+microcrm-front-76dd897dc6-b2flw   true    orion-microcrm-front:1.0.0
+
+=> Le deploiement s'est arrete AVANT toute modification des pods.
+   La version 1.0.0 est toujours en service, intacte.
+
+--- 4. Historique Helm ---
+        	                        	          	              	           	context deadline exceeded                                                                                                                                      
+3       	Tue Aug 18 12:11:08 2026	superseded	microcrm-0.1.0	0.1.0      	Rollback to 1                                                                                                                                                  
+4       	Tue Aug 18 13:22:02 2026	deployed  	microcrm-0.1.0	0.1.0      	Upgrade complete                                                                                                                                               
+5       	Tue Aug 18 13:22:17 2026	failed    	microcrm-0.1.0	0.1.0      	Upgrade "microcrm" failed: pre-upgrade hooks failed: resource Job/orion-dev/microcrm-back-migration not ready. status: Failed, message: Job Failed. failed: 2/1
+
+===== FIN =====

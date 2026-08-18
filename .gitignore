@@ -21,6 +21,13 @@ reports/
 backups/
 *.log
 
+# EXCEPTION : les preuves d'exécution sont des LIVRABLES, pas des artefacts
+# locaux. La règle « *.log » ci-dessus avait silencieusement exclu les traces
+# de la démonstration de rollback, alors que le README les référence — les
+# liens du dépôt public pointaient donc dans le vide.
+# Tout ce qui se trouve sous docs/captures/ est versionné, sans exception.
+!docs/captures/**
+
 # --- Secrets : AUCUN credential ne doit être versionné ---
 .env
 .env.*
