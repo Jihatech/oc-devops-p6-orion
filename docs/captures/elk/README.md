@@ -20,6 +20,48 @@
 | Tableau de bord | 1 — disponibilité, performance, sécurité |
 | **Règles d'alerte** | **3, activées** |
 
+## Captures d'écran
+
+Deux captures de l'interface Kibana, prises sur la stack réellement en fonctionnement. Elles sont
+générées par [`scripts/capturer-kibana.js`](../../../scripts/capturer-kibana.js) — un navigateur sans
+interface —, donc **reproductibles** : elles ne dépendent pas d'une manipulation manuelle.
+
+### Tableau de bord
+
+![Tableau de bord Kibana montrant les cinq panneaux de MicroCRM](kibana-tableau-de-bord.png)
+
+**Description textuelle** (accessibilité PSH) — le tableau de bord affiche cinq panneaux sur une
+fenêtre de 24 heures.
+
+En haut à gauche, « Disponibilité — codes de réponse HTTP » : un histogramme empilé où une barre
+unique atteint 120 requêtes, composée de réponses 200 en vert (environ 90) et 404 en bleu (environ
+30). En haut à droite, « Performance — temps de réponse (médiane et 95e centile) » : une courbe
+plate au voisinage de zéro, les temps de réponse étant inférieurs à la milliseconde.
+
+En bas à gauche, « Sécurité — erreurs client 4xx par URI » : un histogramme horizontal où
+`/api/inexistant` concentre 30 erreurs, les autres chemins (`/api/organizations`, `/api/persons`,
+`/index.html`) n'en comptant aucune. Au centre, « Journaux par composant » : un anneau partagé entre
+`front` à 85,33 % et `back` à 13,07 %, le reste revenant au Job de migration.
+
+À droite, « Indicateurs DORA » : un tableau des dernières valeurs — `change_failure_rate` 44,4,
+`deployment_frequency` 12,71, `lead_time` 36,74, `mttr` 0,11.
+
+### Règles d'alerte
+
+![Écran des règles d'alerte Kibana montrant trois règles activées et réussies](kibana-regles-alerte.png)
+
+**Description textuelle** (accessibilité PSH) — l'écran « Rules » de Kibana affiche le compteur
+**« Succeeded: 3, Failed: 0, Warning: 0 »** puis les trois règles.
+
+« Disponibilite - erreurs serveur 5xx », « Performance - temps de reponse degrade » et
+« Securite - rafale d'erreurs client 4xx » sont toutes de type *Elasticsearch query*, exécutées
+toutes les **1 minute**, avec un taux de réussite de **100 %**, une dernière réponse
+**« Succeeded »** et l'état **« Enabled »**.
+
+> Ces captures illustrent ; ce sont [`etat-stack.log`](etat-stack.log) et les définitions versionnées
+> dans [`elk/kibana/`](../../../elk/kibana/) qui **prouvent**, puisqu'ils sont interrogés par API et
+> reproductibles à l'identique.
+
 ## Les trois dimensions demandées
 
 ### Disponibilité
