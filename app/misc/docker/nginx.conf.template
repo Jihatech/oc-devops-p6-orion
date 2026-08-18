@@ -1,0 +1,64 @@
+# Configuration nginx — frontend MicroCRM
+#
+# Ce fichier est un MODÈLE : l'image nginx substitue les variables
+# d'environnement au démarrage. Le filtre NGINX_ENVSUBST_FILTER limite la
+# substitution à BACKEND_URL, afin que les variables propres à nginx
+# ($uri, $host…) soient laissées intactes.
+#
+# Deux responsabilités :
+#  1. servir le bundle Angular, avec repli sur index.html pour le routage SPA ;
+#  2. relayer /api vers le backend, ce qui rend le frontend indépendant de
+#     l'adresse de l'API et permet d'utiliser la même image partout.
+
+server {
+    # Port 8080 et non 80 : un port privilégié (< 1024) exigerait des droits
+    # root, incompatibles avec un conteneur non privilégié (constat A7).
+    listen 8080;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # En-têtes de sécurité : durcissement de base côté navigateur.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # Sonde distincte de l'application : Kubernetes peut vérifier que nginx
+    # répond sans dépendre du chargement du bundle Angular.
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Relais vers le backend. La barre finale de proxy_pass retire le préfixe
+    # /api/ : le backend expose /persons, pas /api/persons.
+    location /api/ {
+        proxy_pass ${BACKEND_URL}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout    30s;
+    }
+
+    # Fichiers versionnés par empreinte : cache long.
+    location ~* \.(js|css|woff2?|svg|png|jpg|jpeg|gif|ico)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Routage SPA : toute route inconnue renvoie index.html, sans quoi un
+    # rechargement sur /persons/1 donnerait une 404.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

@@ -1,0 +1,9 @@
+{
+  "//": "Relais de développement : reproduit en local (ng serve) le comportement de Caddy en production, afin que /api fonctionne des deux côtés.",
+  "/api": {
+    "target": "http://localhost:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": { "^/api": "" }
+  }
+}
