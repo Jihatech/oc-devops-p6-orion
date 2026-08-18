@@ -3,11 +3,11 @@
 # =============================================================================
 #
 # BUT
-#   Mettre en œuvre la chaîne CI définie dans docs/03-normalisation-plan-ci.md.
-#   Périmètre de la phase 2 : les étapes ① lint, ② build et ③ test.
-#   Les étapes ④ security (SonarQube, Trivy) et ⑤ package (GHCR,
-#   semantic-release) sont ajoutées aux phases 3 et 4, conformément à la
-#   trajectoire incrémentale du §11 du plan.
+#   Mettre en œuvre la chaîne CI/CD définie dans docs/03-normalisation-plan-ci.md.
+#   Les cinq étapes sont en place :
+#     ① lint  ② build  ③ test  ④ security  ⑤ package
+#   Elles ont été ajoutées de façon incrémentale (§11 du plan), chaque
+#   incrément laissant le pipeline vert.
 #
 # PRINCIPES APPLIQUÉS (docs/03, §1)
 #   P1 fail fast     — le lint (secondes) précède le build et les tests (minutes)
@@ -33,8 +33,11 @@ on:
   workflow_dispatch:
 
 # Sécurité : permissions minimales par défaut (docs/03, §8).
-# Aucun job n'obtient plus de droits que ce qu'il consomme réellement ; seul
-# le job de notification est élevé, et uniquement sur `issues`.
+# Aucun job n'obtient plus de droits que ce qu'il consomme réellement. Trois
+# jobs seulement sont élevés, et chacun sur le strict périmètre qu'il utilise :
+#   notification -> issues:write    (ouvrir une issue de suivi sur échec)
+#   package      -> packages:write  (publier les images sur GHCR)
+#   release      -> contents:write  (poser le tag et le changelog)
 permissions:
   contents: read
 
@@ -129,6 +132,56 @@ jobs:
           done
           exit $manquants
 
+  lint-manifestes:
+    name: "① Lint · charts Helm"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installer Helm (version épinglée)
+        uses: azure/setup-helm@v5.0.1
+        with:
+          version: v3.19.0
+
+      - name: Vérifier la syntaxe du chart
+        run: helm lint helm/microcrm --set image.tag=verification
+
+      # Le rendu est vérifié POUR CHAQUE environnement : une valeur absente ou
+      # mal typée dans values-staging.yaml ne se révélerait sinon qu'au moment
+      # du déploiement en recette, c'est-à-dire trop tard.
+      - name: Rendre les manifestes de chaque environnement
+        run: |
+          set -euo pipefail
+          for env in dev staging; do
+            echo "::group::Rendu de l'environnement $env"
+            helm template microcrm helm/microcrm \
+              --values "helm/microcrm/values-${env}.yaml" \
+              --set image.tag=sha-verification > "/tmp/manifestes-${env}.yaml"
+            grep -c '^kind:' "/tmp/manifestes-${env}.yaml" | xargs echo "ressources rendues :"
+            echo "::endgroup::"
+          done
+
+      # Vérifie que le garde-fou du chart fonctionne toujours : sans tag
+      # d'image explicite, le rendu DOIT échouer. Un déploiement sur un tag
+      # implicite rendrait impossible de savoir quelle version tourne
+      # (faiblesse f4) et priverait le rollback de cible fiable.
+      - name: Vérifier que le tag d'image reste obligatoire
+        run: |
+          if helm template microcrm helm/microcrm >/dev/null 2>&1; then
+            echo "::error::Le chart accepte un rendu sans image.tag — le garde-fou a disparu."
+            exit 1
+          fi
+          echo "Garde-fou confirmé : le rendu échoue sans image.tag explicite."
+
+      - name: Valider les manifestes contre le schéma Kubernetes
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz" \
+            | tar -xz -C /tmp kubeconform
+          sudo install /tmp/kubeconform /usr/local/bin/kubeconform
+          kubeconform -strict -summary /tmp/manifestes-dev.yaml /tmp/manifestes-staging.yaml
+
   # ===========================================================================
   # ÉTAPE ② — BUILD
   # Barrière de stage : le build n'est engagé que si TOUT le lint est vert
@@ -139,7 +192,7 @@ jobs:
     name: "② Build · frontend (Angular)"
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    needs: [lint-front, lint-scripts]
+    needs: [lint-front, lint-scripts, lint-manifestes]
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -168,7 +221,7 @@ jobs:
     name: "② Build · backend (Spring Boot)"
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    needs: [lint-front, lint-scripts]
+    needs: [lint-front, lint-scripts, lint-manifestes]
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -405,6 +458,255 @@ jobs:
           retention-days: 30
 
   # ===========================================================================
+  # ÉTAPE ⑤ — PACKAGE
+  #
+  # Ordre interne CRITIQUE (docs/03, §4.4) : construire → SCANNER → publier.
+  # Le scan Trivy se situe ENTRE le build et le push, à l'intérieur du même
+  # job. Conséquence directe et voulue : une image vulnérable n'atteint JAMAIS
+  # le registre. C'est la traduction technique littérale de la demande de
+  # l'équipe Ops — « analyser les images en amont de leur transmission pour
+  # éviter les retours à l'envoyeur » — et la réponse au goulot G1 de l'audit.
+  #
+  # Placer le scan dans un job ultérieur aurait été plus simple à écrire, mais
+  # inopérant : l'image serait déjà publiée au moment du verdict.
+  # ===========================================================================
+
+  package:
+    name: "⑤ Package · images Docker et publication GHCR"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: [sonarqube, scan-securite]
+    permissions:
+      contents: read
+      # Élévation limitée à ce job et à ce seul périmètre : c'est le seul qui
+      # publie. Le GITHUB_TOKEN est régénéré à chaque exécution, ce qui évite
+      # tout jeton de registre longue durée (lacune S5, menace M3).
+      packages: write
+    outputs:
+      tag-sha: ${{ steps.metadonnees.outputs.tag-sha }}
+      prefixe: ${{ steps.metadonnees.outputs.prefixe }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Calculer les métadonnées de publication
+        id: metadonnees
+        run: |
+          set -euo pipefail
+          # Le nom du dépôt GitHub peut contenir des majuscules ; les
+          # références d'images doivent être entièrement en minuscules.
+          prefixe="ghcr.io/$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          tag_sha="sha-$(git rev-parse --short HEAD)"
+          echo "prefixe=$prefixe"   >> "$GITHUB_OUTPUT"
+          echo "tag-sha=$tag_sha"   >> "$GITHUB_OUTPUT"
+          echo "Préfixe : $prefixe"
+          echo "Tag immuable : $tag_sha"
+
+      - name: Installer Trivy (version épinglée)
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            | tar -xz -C /tmp trivy
+          sudo install /tmp/trivy /usr/local/bin/trivy
+          trivy --version
+
+      # --- 1. CONSTRUCTION (sans publication) ------------------------------
+      # Les images sont chargées dans le démon local, pas poussées. Rien ne
+      # part vers le registre tant que le scan n'a pas rendu son verdict.
+      - name: Construire les images
+        run: |
+          set -euo pipefail
+          for composant in back front; do
+            echo "::group::Construction de $composant"
+            docker build \
+              --file "app/${composant}/Dockerfile" \
+              --tag "orion-microcrm-${composant}:${{ steps.metadonnees.outputs.tag-sha }}" \
+              --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+              --label "org.opencontainers.image.revision=${{ github.sha }}" \
+              --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+              app/
+            echo "::endgroup::"
+          done
+          docker images --filter=reference='orion-microcrm-*' \
+            --format '{{.Repository}}:{{.Tag}}  {{.Size}}'
+
+      # --- 2. SCAN BLOQUANT -------------------------------------------------
+      - name: Scanner les images (bloquant avant publication)
+        run: |
+          set -euo pipefail
+          mkdir -p reports/images
+          echec=0
+          for composant in back front; do
+            image="orion-microcrm-${composant}:${{ steps.metadonnees.outputs.tag-sha }}"
+            echo "::group::Scan de $image"
+            # Rapport complet conservé quel que soit le verdict : c'est la
+            # preuve archivée de l'état de sécurité de l'image publiée.
+            trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+              --no-progress --format json \
+              --output "reports/images/trivy-${composant}.json" "$image"
+            if ! trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+                 --no-progress --exit-code 1 "$image"; then
+              echo "::error::L'image $composant porte des vulnérabilités HIGH/CRITICAL corrigibles — publication BLOQUÉE."
+              echec=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $echec
+
+      - name: Publier les rapports de scan d'image
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: rapports-images
+          path: reports/images/
+          retention-days: 30
+
+      # --- 3. PUBLICATION (seulement si le scan est passé) ------------------
+      - name: S'authentifier auprès de GHCR
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Publier les images
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          prefixe="${{ steps.metadonnees.outputs.prefixe }}"
+          tag="${{ steps.metadonnees.outputs.tag-sha }}"
+          for composant in back front; do
+            cible="${prefixe}/orion-microcrm-${composant}:${tag}"
+            docker tag "orion-microcrm-${composant}:${tag}" "$cible"
+            docker push "$cible"
+            echo "Publiée : $cible"
+          done
+          {
+            echo "### ⑤ Images publiées sur GHCR"
+            echo ""
+            echo "| Composant | Référence |"
+            echo "|---|---|"
+            for composant in back front; do
+              echo "| \`$composant\` | \`${prefixe}/orion-microcrm-${composant}:${tag}\` |"
+            done
+            echo ""
+            echo "Scannées **avant** publication : aucune vulnérabilité HIGH/CRITICAL corrigible."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Sur Pull Request, l'image est construite et scannée mais NON publiée :
+      # l'auteur obtient le verdict de sécurité avant la fusion, sans polluer
+      # le registre d'images jetables.
+      - name: Rappeler que rien n'a été publié (hors main)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "Images construites et scannées, mais NON publiées : la publication est réservée à la branche main."
+
+  # ===========================================================================
+  # RELEASE — versionnement automatisé
+  #
+  # semantic-release déduit la version des messages de commit conventionnels :
+  # fix -> patch, feat -> mineure, BREAKING CHANGE -> majeure. La version, le
+  # changelog et le tag Git proviennent ainsi d'une source unique de vérité
+  # (docs/03, §2.2), ce qui répond à la faiblesse f4 de l'audit : plus de
+  # « 0.0.1-SNAPSHOT » figé, plus de tag posé à la main.
+  #
+  # Les images NE SONT PAS reconstruites : les tags sémantiques sont ajoutés
+  # au manifeste déjà publié (`docker buildx imagetools create`). C'est
+  # l'application stricte du principe « construire une fois, déployer
+  # partout » (P3) — l'artefact testé et scanné est exactement celui qui est
+  # promu, au bit près.
+  # ===========================================================================
+
+  release:
+    name: "⑤ Release · version, changelog et tags sémantiques"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: [package]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          # Historique complet : semantic-release analyse tous les commits
+          # depuis le dernier tag pour déterminer la version.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Déterminer la version et publier la release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes \
+            semantic-release@24.2.3 \
+            @semantic-release/changelog@6.0.3 \
+            @semantic-release/git@10.0.1 \
+            conventional-changelog-conventionalcommits@8.0.0
+          # La version publiée est relue depuis le dernier tag Git : c'est la
+          # seule source fiable, semantic-release ne l'exposant pas
+          # directement en sortie.
+          version="$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ -n "$version" ]; then
+            echo "Version publiée : $version"
+          else
+            echo "Aucune nouvelle version : aucun commit n'en justifiait une."
+          fi
+
+      - name: S'authentifier auprès de GHCR
+        if: steps.semantic.outputs.version != ''
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Promouvoir les images avec les tags sémantiques
+        if: steps.semantic.outputs.version != ''
+        run: |
+          set -euo pipefail
+          prefixe="${{ needs.package.outputs.prefixe }}"
+          source_tag="${{ needs.package.outputs.tag-sha }}"
+          version="${{ steps.semantic.outputs.version }}"
+          majeure="${version%%.*}"
+          mineure="${version%.*}"
+
+          for composant in back front; do
+            source="${prefixe}/orion-microcrm-${composant}:${source_tag}"
+            # imagetools create copie le MANIFESTE : aucune reconstruction,
+            # aucun nouveau contenu. L'image promue est, au bit près, celle
+            # qui a été testée et scannée.
+            docker buildx imagetools create \
+              --tag "${prefixe}/orion-microcrm-${composant}:${version}" \
+              --tag "${prefixe}/orion-microcrm-${composant}:${mineure}" \
+              --tag "${prefixe}/orion-microcrm-${composant}:${majeure}" \
+              --tag "${prefixe}/orion-microcrm-${composant}:latest" \
+              "$source"
+            echo "Promue : $composant -> ${version}, ${mineure}, ${majeure}, latest"
+          done
+
+          {
+            echo "### 🏷️ Release ${version}"
+            echo ""
+            echo "Images promues depuis \`${source_tag}\` **sans reconstruction** :"
+            echo ""
+            echo "| Composant | Tags |"
+            echo "|---|---|"
+            for composant in back front; do
+              echo "| \`$composant\` | \`${version}\` · \`${mineure}\` · \`${majeure}\` · \`latest\` |"
+            done
+            echo ""
+            echo "> \`latest\` est publié par commodité mais **n'est jamais utilisé pour déployer** :"
+            echo "> un déploiement référence toujours un tag immuable (docs/03, §2.3)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ===========================================================================
   # NOTIFICATION — synthèse des résultats du pipeline
   # ===========================================================================
 
@@ -416,6 +718,7 @@ jobs:
       [
         lint-front,
         lint-scripts,
+        lint-manifestes,
         build-front,
         build-back,
         test-front,
@@ -423,6 +726,7 @@ jobs:
         test-scripts,
         sonarqube,
         scan-securite,
+        package,
       ]
     # `always()` : la notification doit précisément se produire quand le
     # pipeline échoue — c'est son cas d'usage principal.

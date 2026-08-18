@@ -3,38 +3,39 @@
   "Trivy": {
     "Version": "0.74.0"
   },
-  "ReportID": "01a01597-4c35-75b0-97af-da5359cd4a6e",
-  "CreatedAt": "2026-08-18T15:57:12.11737537Z",
-  "ArtifactID": "sha256:400f75df2b5eeb4665bf4e340527a918c0ec6dd9457005eee868290f95aec3f6",
-  "ArtifactName": "orion-microcrm-back:v2",
+  "ReportID": "01a015ac-cfdd-7f1c-8f8c-73b4f26af6d5",
+  "CreatedAt": "2026-08-18T16:20:42.077993652Z",
+  "ArtifactID": "sha256:cd2df56202e29a70800fb8bd62319227d772444c0d93ac9580ebeeab7231a575",
+  "ArtifactName": "orion-microcrm-back:v3",
   "ArtifactType": "container_image",
   "Metadata": {
-    "Size": 239992832,
+    "Size": 245830656,
     "OS": {
       "Family": "alpine",
       "Name": "3.23.5"
     },
-    "ImageID": "sha256:15746bf0abcc27e8ef7e65ea4c67140be6bfd68c9bbca4e150d4684458a9d080",
+    "ImageID": "sha256:d3d7513309a608b5bb1bbfaf9a7fac0377e1454af0ad32eda82cb9a978718852",
     "DiffIDs": [
       "sha256:31ad4a471c6852bfec14d757cc75a566c82a9769f12c3918cf6bf52cc0eeb3d0",
       "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a",
       "sha256:3d90a23859fe0836294b98bc07d10f34b320d8348f1d3a78877f235842b4c746",
       "sha256:8b61c3ff2355f5d352efdef07f7af37e9147d6f49587798e8f8342d490926615",
       "sha256:687f22ca74dd643a9eba4ea0f6e72116c1683db4a4485ab4c5ba1fe8557aada9",
-      "sha256:b518337ad37523f08ea8fc77f800e248e93028f9c58d0d250f5b0e9d49ca2e17",
-      "sha256:0d62cd2a09ee9f6e8f84d997ad2bdfc640fce811984c46cb012cd2b1958b7281",
-      "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+      "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b",
+      "sha256:29fb3cfbad131cc1dbbe213aaef66e24d2403e9379e5b7325fbf6be47515c030",
+      "sha256:02b93f5fa66f7fbbfe3936a61cae6c7011ff512a5b5ce28102810d01f1dbe109",
+      "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
     ],
     "RepoTags": [
-      "orion-microcrm-back:v2"
+      "orion-microcrm-back:v3"
     ],
     "RepoDigests": [
-      "orion-microcrm-back@sha256:15746bf0abcc27e8ef7e65ea4c67140be6bfd68c9bbca4e150d4684458a9d080"
+      "orion-microcrm-back@sha256:d3d7513309a608b5bb1bbfaf9a7fac0377e1454af0ad32eda82cb9a978718852"
     ],
-    "Reference": "orion-microcrm-back:v2",
+    "Reference": "orion-microcrm-back:v3",
     "ImageConfig": {
       "architecture": "amd64",
-      "created": "2026-08-18T15:48:33.894172943Z",
+      "created": "2026-08-18T16:15:37.5111961Z",
       "history": [
         {
           "created": "2026-06-22T19:20:09Z",
@@ -98,40 +99,45 @@
           "empty_layer": true
         },
         {
-          "created": "2026-08-18T15:48:01Z",
+          "created": "2026-08-18T16:15:36Z",
+          "created_by": "RUN /bin/sh -c apk --no-cache upgrade # buildkit",
+          "comment": "buildkit.dockerfile.v0"
+        },
+        {
+          "created": "2026-08-18T16:15:36Z",
           "created_by": "RUN /bin/sh -c addgroup -g 10001 -S orion \u0026\u0026 adduser -u 10001 -S orion -G orion # buildkit",
           "comment": "buildkit.dockerfile.v0"
         },
         {
-          "created": "2026-08-18T15:48:01Z",
+          "created": "2026-08-18T16:16:01Z",
           "created_by": "WORKDIR /app",
           "comment": "buildkit.dockerfile.v0"
         },
         {
-          "created": "2026-08-18T15:48:33Z",
+          "created": "2026-08-18T16:15:37Z",
           "created_by": "COPY --chown=10001:10001 /tmp/application.jar /app/application.jar # buildkit",
           "comment": "buildkit.dockerfile.v0"
         },
         {
-          "created": "2026-08-18T15:48:33Z",
+          "created": "2026-08-18T16:15:37Z",
           "created_by": "USER 10001:10001",
           "comment": "buildkit.dockerfile.v0",
           "empty_layer": true
         },
         {
-          "created": "2026-08-18T15:48:33Z",
+          "created": "2026-08-18T16:15:37Z",
           "created_by": "EXPOSE [8080/tcp]",
           "comment": "buildkit.dockerfile.v0",
           "empty_layer": true
         },
         {
-          "created": "2026-08-18T15:48:33Z",
+          "created": "2026-08-18T16:15:37Z",
           "created_by": "HEALTHCHECK \u0026{[\"CMD-SHELL\" \"wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1\"] \"30s\" \"5s\" \"1m0s\" \"0s\" '\\x03'}",
           "comment": "buildkit.dockerfile.v0",
           "empty_layer": true
         },
         {
-          "created": "2026-08-18T15:48:33Z",
+          "created": "2026-08-18T16:15:37Z",
           "created_by": "ENTRYPOINT [\"java\" \"-XX:MaxRAMPercentage=75.0\" \"-jar\" \"/app/application.jar\"]",
           "comment": "buildkit.dockerfile.v0",
           "empty_layer": true
@@ -146,9 +152,10 @@
           "sha256:3d90a23859fe0836294b98bc07d10f34b320d8348f1d3a78877f235842b4c746",
           "sha256:8b61c3ff2355f5d352efdef07f7af37e9147d6f49587798e8f8342d490926615",
           "sha256:687f22ca74dd643a9eba4ea0f6e72116c1683db4a4485ab4c5ba1fe8557aada9",
-          "sha256:b518337ad37523f08ea8fc77f800e248e93028f9c58d0d250f5b0e9d49ca2e17",
-          "sha256:0d62cd2a09ee9f6e8f84d997ad2bdfc640fce811984c46cb012cd2b1958b7281",
-          "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+          "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b",
+          "sha256:29fb3cfbad131cc1dbbe213aaef66e24d2403e9379e5b7325fbf6be47515c030",
+          "sha256:02b93f5fa66f7fbbfe3936a61cae6c7011ff512a5b5ce28102810d01f1dbe109",
+          "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
         ]
       },
       "config": {
@@ -210,25 +217,30 @@
         "DiffID": "sha256:687f22ca74dd643a9eba4ea0f6e72116c1683db4a4485ab4c5ba1fe8557aada9"
       },
       {
+        "Size": 5837824,
+        "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+        "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
+      },
+      {
         "Size": 10752,
-        "Digest": "sha256:46e9afab093a446037a73e0ba48127ec4d863501823909a9baed9ddad68f2cd9",
-        "DiffID": "sha256:b518337ad37523f08ea8fc77f800e248e93028f9c58d0d250f5b0e9d49ca2e17"
+        "Digest": "sha256:cb0d67167cd6d2ebce3fc0380f4e806b120d95be0a2e15a7c1de628f9691a4d9",
+        "DiffID": "sha256:29fb3cfbad131cc1dbbe213aaef66e24d2403e9379e5b7325fbf6be47515c030"
       },
       {
         "Size": 1536,
-        "Digest": "sha256:74885f4434e81d551d43777162683df52bf58744e4c9dc605b44b6d771b90f29",
-        "DiffID": "sha256:0d62cd2a09ee9f6e8f84d997ad2bdfc640fce811984c46cb012cd2b1958b7281"
+        "Digest": "sha256:6dac0825160a10958e1e7af8f844ba6da9a36e159604709cbc043535f707820a",
+        "DiffID": "sha256:02b93f5fa66f7fbbfe3936a61cae6c7011ff512a5b5ce28102810d01f1dbe109"
       },
       {
         "Size": 54904832,
-        "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-        "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+        "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+        "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
       }
     ]
   },
   "Results": [
     {
-      "Target": "orion-microcrm-back:v2 (alpine 3.23.5)",
+      "Target": "orion-microcrm-back:v3 (alpine 3.23.5)",
       "Class": "os-pkgs",
       "Type": "alpine",
       "Packages": [
@@ -440,32 +452,32 @@
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "apk-tools@3.0.6-r0",
+          "ID": "apk-tools@3.0.7-r0",
           "Name": "apk-tools",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/apk-tools@3.0.6-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "c719faa075d9da13"
+            "PURL": "pkg:apk/alpine/apk-tools@3.0.7-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "1839fd1a0c1bcd84"
           },
-          "Version": "3.0.6-r0",
+          "Version": "3.0.7-r0",
           "Arch": "x86_64",
           "SrcName": "apk-tools",
-          "SrcVersion": "3.0.6-r0",
+          "SrcVersion": "3.0.7-r0",
           "Licenses": [
             "GPL-2.0-only"
           ],
           "Maintainer": "Natanael Copa \u003cncopa@alpinelinux.org\u003e",
           "DependsOn": [
             "ca-certificates-bundle@20260611-r0",
-            "libapk@3.0.6-r0",
+            "libapk@3.0.7-r0",
             "libcrypto3@3.5.7-r0",
             "musl@1.2.5-r23",
             "zlib@1.3.2-r0"
           ],
           "Layer": {
-            "Digest": "sha256:e6f31ffc071e5560b82a8685fba8214954e5721e3e49269d00958316edbe89fe",
-            "DiffID": "sha256:31ad4a471c6852bfec14d757cc75a566c82a9769f12c3918cf6bf52cc0eeb3d0"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:86f3b3ef94d1cb213a4ed1187b34a6bb9f593033",
+          "Digest": "sha1:f74e88a991c70829597463bf8f0aa680619f899e",
           "InstalledFiles": [
             "sbin/apk"
           ],
@@ -1120,7 +1132,7 @@
           "Name": "fontconfig",
           "Identifier": {
             "PURL": "pkg:apk/alpine/fontconfig@2.17.1-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "67b4a772157fadbd"
+            "UID": "b0c02ce931e2daba"
           },
           "Version": "2.17.1-r0",
           "Arch": "x86_64",
@@ -1132,8 +1144,8 @@
           "Maintainer": "Natanael Copa \u003cncopa@alpinelinux.org\u003e",
           "DependsOn": [
             "busybox-binsh@1.37.0-r30",
-            "freetype@2.14.1-r0",
-            "libexpat@2.8.1-r0",
+            "freetype@2.14.3-r0",
+            "libexpat@2.8.2-r0",
             "musl@1.2.5-r23"
           ],
           "Layer": {
@@ -1226,16 +1238,16 @@
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "freetype@2.14.1-r0",
+          "ID": "freetype@2.14.3-r0",
           "Name": "freetype",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/freetype@2.14.1-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "d0ae0a3d160c9ff2"
+            "PURL": "pkg:apk/alpine/freetype@2.14.3-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "bfc9b8cf530ca476"
           },
-          "Version": "2.14.1-r0",
+          "Version": "2.14.3-r0",
           "Arch": "x86_64",
           "SrcName": "freetype",
-          "SrcVersion": "2.14.1-r0",
+          "SrcVersion": "2.14.3-r0",
           "Licenses": [
             "FTL",
             "GPL-2.0-or-later"
@@ -1249,13 +1261,13 @@
             "zlib@1.3.2-r0"
           ],
           "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:e227f29a00edd7ed5b1e62a050da6532183e60be",
+          "Digest": "sha1:830add7bff72b4656dbe08b5b5704ddbc162660a",
           "InstalledFiles": [
             "usr/lib/libfreetype.so.6",
-            "usr/lib/libfreetype.so.6.20.4"
+            "usr/lib/libfreetype.so.6.20.6"
           ],
           "AnalyzedBy": "apk"
         },
@@ -1430,7 +1442,7 @@
           "Name": "gnupg-keyboxd",
           "Identifier": {
             "PURL": "pkg:apk/alpine/gnupg-keyboxd@2.4.9-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "edd839e77d0b834e"
+            "UID": "d732720c77c14be"
           },
           "Version": "2.4.9-r0",
           "Arch": "x86_64",
@@ -1447,7 +1459,7 @@
             "libksba@1.6.7-r0",
             "musl@1.2.5-r23",
             "npth@1.8-r0",
-            "sqlite-libs@3.51.2-r0"
+            "sqlite-libs@3.53.4-r0"
           ],
           "Layer": {
             "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
@@ -1543,7 +1555,7 @@
           "Name": "gnutls",
           "Identifier": {
             "PURL": "pkg:apk/alpine/gnutls@3.8.13-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "af5086f1af438769"
+            "UID": "9866b98b63a0f4eb"
           },
           "Version": "3.8.13-r0",
           "Arch": "x86_64",
@@ -1561,7 +1573,7 @@
             "libunistring@1.4.1-r0",
             "musl@1.2.5-r23",
             "nettle@3.10.2-r0",
-            "p11-kit@0.25.5-r2",
+            "p11-kit@0.26.2-r0",
             "zlib@1.3.2-r0",
             "zstd-libs@1.5.7-r2"
           ],
@@ -1581,7 +1593,7 @@
           "Name": "gpg",
           "Identifier": {
             "PURL": "pkg:apk/alpine/gpg@2.4.9-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "ad0865cea81308f4"
+            "UID": "60324d02cf628034"
           },
           "Version": "2.4.9-r0",
           "Arch": "x86_64",
@@ -1601,7 +1613,7 @@
             "libgpg-error@1.55-r0",
             "musl@1.2.5-r23",
             "npth@1.8-r0",
-            "sqlite-libs@3.51.2-r0",
+            "sqlite-libs@3.53.4-r0",
             "zlib@1.3.2-r0"
           ],
           "Layer": {
@@ -1754,16 +1766,16 @@
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "libapk@3.0.6-r0",
+          "ID": "libapk@3.0.7-r0",
           "Name": "libapk",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/libapk@3.0.6-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "843500ddf1c91d19"
+            "PURL": "pkg:apk/alpine/libapk@3.0.7-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "e0fd2c59771ebf33"
           },
-          "Version": "3.0.6-r0",
+          "Version": "3.0.7-r0",
           "Arch": "x86_64",
           "SrcName": "apk-tools",
-          "SrcVersion": "3.0.6-r0",
+          "SrcVersion": "3.0.7-r0",
           "Licenses": [
             "GPL-2.0-only"
           ],
@@ -1775,10 +1787,10 @@
             "zlib@1.3.2-r0"
           ],
           "Layer": {
-            "Digest": "sha256:e6f31ffc071e5560b82a8685fba8214954e5721e3e49269d00958316edbe89fe",
-            "DiffID": "sha256:31ad4a471c6852bfec14d757cc75a566c82a9769f12c3918cf6bf52cc0eeb3d0"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:f064c8318c4f7f17da6a490921ce0d5e709fc063",
+          "Digest": "sha1:9ed5c8f9cad03e5af6c10e1332a88b9c372ea84c",
           "InstalledFiles": [
             "usr/lib/libapk.so.3.0.0"
           ],
@@ -1910,16 +1922,16 @@
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "libexpat@2.8.1-r0",
+          "ID": "libexpat@2.8.2-r0",
           "Name": "libexpat",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/libexpat@2.8.1-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "937779c088749efc"
+            "PURL": "pkg:apk/alpine/libexpat@2.8.2-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "ed0859f88a1c61e2"
           },
-          "Version": "2.8.1-r0",
+          "Version": "2.8.2-r0",
           "Arch": "x86_64",
           "SrcName": "expat",
-          "SrcVersion": "2.8.1-r0",
+          "SrcVersion": "2.8.2-r0",
           "Licenses": [
             "MIT"
           ],
@@ -1928,13 +1940,13 @@
             "musl@1.2.5-r23"
           ],
           "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:cd9253f45e3c299b3750038b784e2960567cfc4e",
+          "Digest": "sha1:85a2beba0ffd79c6d33a62172e7badd2719903e1",
           "InstalledFiles": [
             "usr/lib/libexpat.so.1",
-            "usr/lib/libexpat.so.1.12.1"
+            "usr/lib/libexpat.so.1.12.2"
           ],
           "AnalyzedBy": "apk"
         },
@@ -2379,7 +2391,7 @@
           "Name": "mkfontscale",
           "Identifier": {
             "PURL": "pkg:apk/alpine/mkfontscale@1.2.3-r1?arch=x86_64\u0026distro=3.23.5",
-            "UID": "dc8db28836dd0ca2"
+            "UID": "2b79c311b8870c69"
           },
           "Version": "1.2.3-r1",
           "Arch": "x86_64",
@@ -2391,7 +2403,7 @@
           "Maintainer": "Natanael Copa \u003cncopa@alpinelinux.org\u003e",
           "DependsOn": [
             "busybox-binsh@1.37.0-r30",
-            "freetype@2.14.1-r0",
+            "freetype@2.14.3-r0",
             "libfontenc@1.1.8-r0",
             "musl@1.2.5-r23",
             "zlib@1.3.2-r0"
@@ -2712,16 +2724,16 @@
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "p11-kit@0.25.5-r2",
+          "ID": "p11-kit@0.26.2-r0",
           "Name": "p11-kit",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/p11-kit@0.25.5-r2?arch=x86_64\u0026distro=3.23.5",
-            "UID": "a37e699e84a4d85b"
+            "PURL": "pkg:apk/alpine/p11-kit@0.26.2-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "e24da90c96c3e2d2"
           },
-          "Version": "0.25.5-r2",
+          "Version": "0.26.2-r0",
           "Arch": "x86_64",
           "SrcName": "p11-kit",
-          "SrcVersion": "0.25.5-r2",
+          "SrcVersion": "0.26.2-r0",
           "Licenses": [
             "BSD-3-Clause"
           ],
@@ -2732,31 +2744,31 @@
             "musl@1.2.5-r23"
           ],
           "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:b03c9c498fc8b875d694659827c39e791b0dce51",
+          "Digest": "sha1:683edfbab6c9d2f63312dd1dfa602dacb6195f78",
           "InstalledFiles": [
             "etc/pkcs11/pkcs11.conf.example",
             "usr/bin/p11-kit",
             "usr/lib/libp11-kit.so.0",
-            "usr/lib/libp11-kit.so.0.4.1",
+            "usr/lib/libp11-kit.so.0.4.8",
             "usr/libexec/p11-kit/p11-kit-remote",
             "usr/libexec/p11-kit/trust-extract-compat"
           ],
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "p11-kit-trust@0.25.5-r2",
+          "ID": "p11-kit-trust@0.26.2-r0",
           "Name": "p11-kit-trust",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/p11-kit-trust@0.25.5-r2?arch=x86_64\u0026distro=3.23.5",
-            "UID": "47b284956b81b70b"
+            "PURL": "pkg:apk/alpine/p11-kit-trust@0.26.2-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "f8876153c84efc17"
           },
-          "Version": "0.25.5-r2",
+          "Version": "0.26.2-r0",
           "Arch": "x86_64",
           "SrcName": "p11-kit",
-          "SrcVersion": "0.25.5-r2",
+          "SrcVersion": "0.26.2-r0",
           "Licenses": [
             "BSD-3-Clause"
           ],
@@ -2764,13 +2776,13 @@
           "DependsOn": [
             "libtasn1@4.21.0-r0",
             "musl@1.2.5-r23",
-            "p11-kit@0.25.5-r2"
+            "p11-kit@0.26.2-r0"
           ],
           "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:566b28378ea154f29cc0c26050403949573a7cd1",
+          "Digest": "sha1:a6ce88d56687e1af3bea92de7d9e3f63495f6817",
           "InstalledFiles": [
             "usr/bin/trust",
             "usr/lib/pkcs11/p11-kit-trust.so",
@@ -2868,16 +2880,16 @@
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "sqlite-libs@3.51.2-r0",
+          "ID": "sqlite-libs@3.53.4-r0",
           "Name": "sqlite-libs",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/sqlite-libs@3.51.2-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "c9d4561699315154"
+            "PURL": "pkg:apk/alpine/sqlite-libs@3.53.4-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "1c93b81967bde91a"
           },
-          "Version": "3.51.2-r0",
+          "Version": "3.53.4-r0",
           "Arch": "x86_64",
           "SrcName": "sqlite",
-          "SrcVersion": "3.51.2-r0",
+          "SrcVersion": "3.53.4-r0",
           "Licenses": [
             "blessing"
           ],
@@ -2886,13 +2898,13 @@
             "musl@1.2.5-r23"
           ],
           "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:8a0cec5c2bed73f54151897852ecf7c748d0ddea",
+          "Digest": "sha1:dd3310a9307ae01dabb0018770bf7b2968eff199",
           "InstalledFiles": [
             "usr/lib/libsqlite3.so.0",
-            "usr/lib/libsqlite3.so.3.51.2"
+            "usr/lib/libsqlite3.so.3.53.4"
           ],
           "AnalyzedBy": "apk"
         },
@@ -2927,25 +2939,25 @@
           "AnalyzedBy": "apk"
         },
         {
-          "ID": "tzdata@2026b-r0",
+          "ID": "tzdata@2026c-r0",
           "Name": "tzdata",
           "Identifier": {
-            "PURL": "pkg:apk/alpine/tzdata@2026b-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "86f2dfb9a4acee39"
+            "PURL": "pkg:apk/alpine/tzdata@2026c-r0?arch=x86_64\u0026distro=3.23.5",
+            "UID": "e471ecd044c6763"
           },
-          "Version": "2026b-r0",
+          "Version": "2026c-r0",
           "Arch": "x86_64",
           "SrcName": "tzdata",
-          "SrcVersion": "2026b-r0",
+          "SrcVersion": "2026c-r0",
           "Licenses": [
             "Public-Domain"
           ],
           "Maintainer": "Natanael Copa \u003cncopa@alpinelinux.org\u003e",
           "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
+            "Digest": "sha256:ac520fdc065011087e7bcde5b8d1e867f73081bd79c25dee55e78223de5ab620",
+            "DiffID": "sha256:7008ab5ef7c8874e3ab0ef08f39b295a4ccd738f648adf5be8a62cb282abae1b"
           },
-          "Digest": "sha1:2624b59cfb8182dfb3de19043c6867cd1b3e1779",
+          "Digest": "sha1:5449aeb87c78a380a49320e1f98f67b13b1828a7",
           "InstalledFiles": [
             "usr/share/zoneinfo/CET",
             "usr/share/zoneinfo/CST6CDT",
@@ -3642,194 +3654,6 @@
           ],
           "AnalyzedBy": "apk"
         }
-      ],
-      "Vulnerabilities": [
-        {
-          "VulnerabilityID": "CVE-2026-56408",
-          "PkgID": "libexpat@2.8.1-r0",
-          "PkgName": "libexpat",
-          "PkgIdentifier": {
-            "PURL": "pkg:apk/alpine/libexpat@2.8.1-r0?arch=x86_64\u0026distro=3.23.5",
-            "UID": "937779c088749efc"
-          },
-          "InstalledVersion": "2.8.1-r0",
-          "FixedVersion": "2.8.2-r0",
-          "Status": "fixed",
-          "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
-          },
-          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-56408",
-          "DataSource": {
-            "ID": "alpine",
-            "Name": "Alpine Secdb",
-            "URL": "https://secdb.alpinelinux.org/"
-          },
-          "Fingerprint": "sha256:21926840788ff155315eb4a1f4aad65687a3f3ac5fc4c7158be7f207ff7c0811",
-          "Title": "libexpat before 2.8.2 has an integer overflow in copyString.",
-          "Description": "libexpat before 2.8.2 has an integer overflow in copyString.",
-          "Severity": "HIGH",
-          "CweIDs": [
-            "CWE-190"
-          ],
-          "VendorSeverity": {
-            "amazon": 3,
-            "azure": 2,
-            "julia": 2
-          },
-          "CVSS": {
-            "julia": {
-              "V3Vector": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:L",
-              "V3Score": 6.9
-            }
-          },
-          "References": [
-            "https://github.com/libexpat/libexpat/commit/16e2efd867ea8567ffa012210b52ef5918e20817",
-            "https://nvd.nist.gov/vuln/detail/CVE-2026-56408"
-          ],
-          "PublishedDate": "2026-06-21T16:16:28.11Z",
-          "LastModifiedDate": "2026-06-23T16:27:26.523Z"
-        },
-        {
-          "VulnerabilityID": "CVE-2026-2100",
-          "PkgID": "p11-kit@0.25.5-r2",
-          "PkgName": "p11-kit",
-          "PkgIdentifier": {
-            "PURL": "pkg:apk/alpine/p11-kit@0.25.5-r2?arch=x86_64\u0026distro=3.23.5",
-            "UID": "a37e699e84a4d85b"
-          },
-          "InstalledVersion": "0.25.5-r2",
-          "FixedVersion": "0.26.2-r0",
-          "Status": "fixed",
-          "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
-          },
-          "SeveritySource": "nvd",
-          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-2100",
-          "DataSource": {
-            "ID": "alpine",
-            "Name": "Alpine Secdb",
-            "URL": "https://secdb.alpinelinux.org/"
-          },
-          "Fingerprint": "sha256:3e720e5609e8f7e3705c0163fd189399b2136d04c2f84633493b9c50266035f1",
-          "Title": "p11-kit: NULL dereference via C_DeriveKey with specific NULL parameters",
-          "Description": "A flaw was found in p11-kit. A remote attacker could exploit this vulnerability by calling the C_DeriveKey function on a remote token with specific IBM kyber or IBM btc derive mechanism parameters set to NULL. This could lead to the RPC-client attempting to return an uninitialized value, potentially resulting in a NULL dereference or undefined behavior. This issue may cause an application level denial of service or other unpredictable system states.",
-          "Severity": "HIGH",
-          "CweIDs": [
-            "CWE-824"
-          ],
-          "VendorSeverity": {
-            "alma": 2,
-            "nvd": 3,
-            "oracle-oval": 2,
-            "redhat": 2,
-            "rocky": 2
-          },
-          "CVSS": {
-            "nvd": {
-              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-              "V3Score": 7.5
-            },
-            "redhat": {
-              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
-              "V3Score": 5.3
-            }
-          },
-          "References": [
-            "https://access.redhat.com/errata/RHSA-2026:18143",
-            "https://access.redhat.com/errata/RHSA-2026:18599",
-            "https://access.redhat.com/errata/RHSA-2026:21275",
-            "https://access.redhat.com/errata/RHSA-2026:22634",
-            "https://access.redhat.com/errata/RHSA-2026:27998",
-            "https://access.redhat.com/errata/RHSA-2026:7065",
-            "https://access.redhat.com/security/cve/CVE-2026-2100",
-            "https://bugzilla.redhat.com/2437308",
-            "https://bugzilla.redhat.com/show_bug.cgi?id=2437308",
-            "https://creativecommons.org/licenses/by/4.0/",
-            "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2026-2100",
-            "https://errata.almalinux.org/9/ALSA-2026-18599.html",
-            "https://errata.rockylinux.org/RLSA-2026:18599",
-            "https://github.com/p11-glue/p11-kit/pull/740",
-            "https://github.com/p11-glue/p11-kit/releases/tag/0.26.2",
-            "https://linux.oracle.com/cve/CVE-2026-2100.html",
-            "https://linux.oracle.com/errata/ELSA-2026-18599.html",
-            "https://nvd.nist.gov/vuln/detail/CVE-2026-2100",
-            "https://www.cve.org/CVERecord?id=CVE-2026-2100"
-          ],
-          "PublishedDate": "2026-03-26T21:17:04.247Z",
-          "LastModifiedDate": "2026-08-17T13:16:52.143Z"
-        },
-        {
-          "VulnerabilityID": "CVE-2026-2100",
-          "PkgID": "p11-kit-trust@0.25.5-r2",
-          "PkgName": "p11-kit-trust",
-          "PkgIdentifier": {
-            "PURL": "pkg:apk/alpine/p11-kit-trust@0.25.5-r2?arch=x86_64\u0026distro=3.23.5",
-            "UID": "47b284956b81b70b"
-          },
-          "InstalledVersion": "0.25.5-r2",
-          "FixedVersion": "0.26.2-r0",
-          "Status": "fixed",
-          "Layer": {
-            "Digest": "sha256:33155d10cbc71fdb14f9df0a7aab9f4991457ef842a4b3faba9384696971d92b",
-            "DiffID": "sha256:1112236b0354fe1c86d61efac98dd01986568a07db45314ba7dcce16563ddf1a"
-          },
-          "SeveritySource": "nvd",
-          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-2100",
-          "DataSource": {
-            "ID": "alpine",
-            "Name": "Alpine Secdb",
-            "URL": "https://secdb.alpinelinux.org/"
-          },
-          "Fingerprint": "sha256:67db8401c0abbb6f0512d89eb9a142b6aa3d9612522c0b1a5cafb202028511e1",
-          "Title": "p11-kit: NULL dereference via C_DeriveKey with specific NULL parameters",
-          "Description": "A flaw was found in p11-kit. A remote attacker could exploit this vulnerability by calling the C_DeriveKey function on a remote token with specific IBM kyber or IBM btc derive mechanism parameters set to NULL. This could lead to the RPC-client attempting to return an uninitialized value, potentially resulting in a NULL dereference or undefined behavior. This issue may cause an application level denial of service or other unpredictable system states.",
-          "Severity": "HIGH",
-          "CweIDs": [
-            "CWE-824"
-          ],
-          "VendorSeverity": {
-            "alma": 2,
-            "nvd": 3,
-            "oracle-oval": 2,
-            "redhat": 2,
-            "rocky": 2
-          },
-          "CVSS": {
-            "nvd": {
-              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-              "V3Score": 7.5
-            },
-            "redhat": {
-              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
-              "V3Score": 5.3
-            }
-          },
-          "References": [
-            "https://access.redhat.com/errata/RHSA-2026:18143",
-            "https://access.redhat.com/errata/RHSA-2026:18599",
-            "https://access.redhat.com/errata/RHSA-2026:21275",
-            "https://access.redhat.com/errata/RHSA-2026:22634",
-            "https://access.redhat.com/errata/RHSA-2026:27998",
-            "https://access.redhat.com/errata/RHSA-2026:7065",
-            "https://access.redhat.com/security/cve/CVE-2026-2100",
-            "https://bugzilla.redhat.com/2437308",
-            "https://bugzilla.redhat.com/show_bug.cgi?id=2437308",
-            "https://creativecommons.org/licenses/by/4.0/",
-            "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2026-2100",
-            "https://errata.almalinux.org/9/ALSA-2026-18599.html",
-            "https://errata.rockylinux.org/RLSA-2026:18599",
-            "https://github.com/p11-glue/p11-kit/pull/740",
-            "https://github.com/p11-glue/p11-kit/releases/tag/0.26.2",
-            "https://linux.oracle.com/cve/CVE-2026-2100.html",
-            "https://linux.oracle.com/errata/ELSA-2026-18599.html",
-            "https://nvd.nist.gov/vuln/detail/CVE-2026-2100",
-            "https://www.cve.org/CVERecord?id=CVE-2026-2100"
-          ],
-          "PublishedDate": "2026-03-26T21:17:04.247Z",
-          "LastModifiedDate": "2026-08-17T13:16:52.143Z"
-        }
       ]
     },
     {
@@ -3849,8 +3673,8 @@
             "LGPL-2.1-only"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/logback-classic-1.5.34.jar",
           "AnalyzedBy": "jar"
@@ -3867,8 +3691,8 @@
             "LGPL-2.1-only"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/logback-core-1.5.34.jar",
           "AnalyzedBy": "jar"
@@ -3884,8 +3708,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jackson-annotations-2.21.jar",
           "AnalyzedBy": "jar"
@@ -3901,8 +3725,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jackson-core-2.21.4.jar",
           "AnalyzedBy": "jar"
@@ -3918,8 +3742,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jackson-databind-2.21.4.jar",
           "AnalyzedBy": "jar"
@@ -3935,8 +3759,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jackson-datatype-jdk8-2.21.4.jar",
           "AnalyzedBy": "jar"
@@ -3952,8 +3776,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jackson-datatype-jsr310-2.21.4.jar",
           "AnalyzedBy": "jar"
@@ -3969,8 +3793,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jackson-module-parameter-names-2.21.4.jar",
           "AnalyzedBy": "jar"
@@ -3986,8 +3810,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/classmate-1.7.3.jar",
           "AnalyzedBy": "jar"
@@ -4000,8 +3824,8 @@
           },
           "Version": "2.9.0",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/json-path-2.9.0.jar",
           "AnalyzedBy": "jar"
@@ -4017,8 +3841,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/istack-commons-runtime-4.1.2.jar",
           "AnalyzedBy": "jar"
@@ -4034,8 +3858,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/HikariCP-6.3.3.jar",
           "AnalyzedBy": "jar"
@@ -4051,8 +3875,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/micrometer-commons-1.15.12.jar",
           "AnalyzedBy": "jar"
@@ -4068,8 +3892,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/micrometer-observation-1.15.12.jar",
           "AnalyzedBy": "jar"
@@ -4085,8 +3909,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jandex-3.2.0.jar",
           "AnalyzedBy": "jar"
@@ -4102,8 +3926,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jakarta.activation-api-2.1.4.jar",
           "AnalyzedBy": "jar"
@@ -4120,8 +3944,8 @@
             "GPL-2.0-with-classpath-exception"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jakarta.annotation-api-2.1.1.jar",
           "AnalyzedBy": "jar"
@@ -4137,8 +3961,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jakarta.inject-api-2.0.1.jar",
           "AnalyzedBy": "jar"
@@ -4155,8 +3979,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jakarta.persistence-api-3.1.0.jar",
           "AnalyzedBy": "jar"
@@ -4173,8 +3997,8 @@
             "GPL-2.0-with-classpath-exception"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jakarta.transaction-api-2.0.1.jar",
           "AnalyzedBy": "jar"
@@ -4190,8 +4014,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jakarta.xml.bind-api-4.0.5.jar",
           "AnalyzedBy": "jar"
@@ -4207,8 +4031,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/byte-buddy-1.17.8.jar",
           "AnalyzedBy": "jar"
@@ -4224,8 +4048,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/accessors-smart-2.5.2.jar",
           "AnalyzedBy": "jar"
@@ -4241,8 +4065,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/json-smart-2.5.2.jar",
           "AnalyzedBy": "jar"
@@ -4255,8 +4079,8 @@
           },
           "Version": "4.13.2",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/antlr4-runtime-4.13.2.jar",
           "AnalyzedBy": "jar"
@@ -4272,8 +4096,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/log4j-api-2.24.3.jar",
           "AnalyzedBy": "jar"
@@ -4289,8 +4113,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/log4j-to-slf4j-2.24.3.jar",
           "AnalyzedBy": "jar"
@@ -4306,8 +4130,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/tomcat-embed-core-10.1.55.jar",
           "AnalyzedBy": "jar"
@@ -4323,8 +4147,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/tomcat-embed-el-10.1.55.jar",
           "AnalyzedBy": "jar"
@@ -4340,8 +4164,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/tomcat-embed-websocket-10.1.55.jar",
           "AnalyzedBy": "jar"
@@ -4354,8 +4178,8 @@
           },
           "Version": "1.9.25.1",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/aspectjweaver-1.9.25.1.jar",
           "AnalyzedBy": "jar"
@@ -4371,8 +4195,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/evo-inflector-1.3.jar",
           "AnalyzedBy": "jar"
@@ -4388,8 +4212,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/angus-activation-2.0.3.jar",
           "AnalyzedBy": "jar"
@@ -4405,8 +4229,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jaxb-core-4.0.9.jar",
           "AnalyzedBy": "jar"
@@ -4422,8 +4246,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jaxb-runtime-4.0.9.jar",
           "AnalyzedBy": "jar"
@@ -4439,8 +4263,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/txw2-4.0.9.jar",
           "AnalyzedBy": "jar"
@@ -4453,8 +4277,8 @@
           },
           "Version": "7.0.3.Final",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/hibernate-commons-annotations-7.0.3.Final.jar",
           "AnalyzedBy": "jar"
@@ -4467,8 +4291,8 @@
           },
           "Version": "6.6.53.Final",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/hibernate-core-6.6.53.Final.jar",
           "AnalyzedBy": "jar"
@@ -4481,8 +4305,8 @@
           },
           "Version": "2.7.3",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/hsqldb-2.7.3.jar",
           "AnalyzedBy": "jar"
@@ -4498,8 +4322,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jboss-logging-3.6.3.Final.jar",
           "AnalyzedBy": "jar"
@@ -4515,8 +4339,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/asm-9.7.1.jar",
           "AnalyzedBy": "jar"
@@ -4532,8 +4356,8 @@
             "MIT"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/jul-to-slf4j-2.0.18.jar",
           "AnalyzedBy": "jar"
@@ -4549,8 +4373,8 @@
             "MIT"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/slf4j-api-2.0.18.jar",
           "AnalyzedBy": "jar"
@@ -4566,8 +4390,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-boot-3.5.16.jar",
           "AnalyzedBy": "jar"
@@ -4583,8 +4407,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-boot-autoconfigure-3.5.16.jar",
           "AnalyzedBy": "jar"
@@ -4600,8 +4424,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-boot-jarmode-tools-3.5.16.jar",
           "AnalyzedBy": "jar"
@@ -4617,8 +4441,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-data-commons-3.5.13.jar",
           "AnalyzedBy": "jar"
@@ -4634,8 +4458,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-data-jpa-3.5.13.jar",
           "AnalyzedBy": "jar"
@@ -4648,8 +4472,8 @@
           },
           "Version": "4.5.13",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-data-rest-core-4.5.13.jar",
           "AnalyzedBy": "jar"
@@ -4662,8 +4486,8 @@
           },
           "Version": "4.5.13",
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-data-rest-webmvc-4.5.13.jar",
           "AnalyzedBy": "jar"
@@ -4679,8 +4503,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-hateoas-2.5.3.jar",
           "AnalyzedBy": "jar"
@@ -4696,8 +4520,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-plugin-core-3.0.0.jar",
           "AnalyzedBy": "jar"
@@ -4714,8 +4538,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-aop-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4732,8 +4556,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-aspects-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4750,8 +4574,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-beans-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4768,8 +4592,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-context-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4786,8 +4610,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-core-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4804,8 +4628,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-expression-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4822,8 +4646,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-jcl-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4840,8 +4664,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-jdbc-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4858,8 +4682,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-orm-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4876,8 +4700,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-tx-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4894,8 +4718,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-web-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4912,8 +4736,8 @@
             "BSD-3-Clause"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-webmvc-6.2.19.jar",
           "AnalyzedBy": "jar"
@@ -4929,8 +4753,8 @@
             "Apache-2.0"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/snakeyaml-2.4.jar",
           "AnalyzedBy": "jar"
@@ -4946,8 +4770,8 @@
             "MIT"
           ],
           "Layer": {
-            "Digest": "sha256:530c6e9d8e27f36261820a47ef76906436aab0da8a1a619549e0d1e79b9433cc",
-            "DiffID": "sha256:70ca53091a7934a53b4b62eb11632ed7f6c91f03050e43e1e667faf0de0f6797"
+            "Digest": "sha256:7840b564e8ad9e9e22e6ea27684cf0a552d6fc4c11272716a79a054b73363735",
+            "DiffID": "sha256:99edebcc38621fd8b23b69367c2494b06c2d150ae06ee142b5b69a0378a839d7"
           },
           "FilePath": "app/application.jar/BOOT-INF/lib/spring-boot-data-fixtures-0.2.0.jar",
           "AnalyzedBy": "jar"

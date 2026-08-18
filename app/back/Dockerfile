@@ -49,6 +49,20 @@ FROM eclipse-temurin:17.0.19_10-jre-alpine-3.23@sha256:b658bee7bbf0277559bd07dfb
 # Utilisateur non privilégié (A7). L'UID est fixé explicitement pour
 # correspondre au `securityContext.runAsUser` des manifestes Helm : une image
 # non-root déployée avec un securityContext incohérent ne démarre pas.
+# Application des correctifs de sécurité disponibles dans les dépôts Alpine.
+#
+# Compromis assumé : la base reste épinglée par digest — le point de départ est
+# donc déterministe —, mais cette instruction tire les paquets corrigés au
+# moment de la construction. Deux constructions éloignées dans le temps peuvent
+# ainsi différer d'un niveau de correctif.
+#
+# C'est délibéré, et c'est le bon arbitrage : sans cette ligne, l'image traîne
+# les CVE système du jour où l'image de base a été publiée, jusqu'à ce que son
+# éditeur la reconstruise — un délai sur lequel Orion n'a aucune prise. La
+# traçabilité est préservée autrement : le scan Trivy de chaque image publiée
+# est archivé, et le re-scan hebdomadaire détecte toute dérive ultérieure.
+RUN apk --no-cache upgrade
+
 RUN addgroup -g 10001 -S orion && adduser -u 10001 -S orion -G orion
 
 WORKDIR /app

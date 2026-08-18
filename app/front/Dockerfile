@@ -48,6 +48,22 @@ FROM nginxinc/nginx-unprivileged:1.29-alpine@sha256:8059701048a6cc7d64e8ab2812a4
 # L'image applique la substitution de variables aux fichiers de ce répertoire
 # au démarrage. Le filtre restreint la substitution à BACKEND_URL, afin de ne
 # pas altérer les variables internes de nginx ($uri, $host…).
+# Application des correctifs de sécurité disponibles dans les dépôts Alpine.
+#
+# Compromis assumé : la base reste épinglée par digest — le point de départ est
+# donc déterministe —, mais cette instruction tire les paquets corrigés au
+# moment de la construction. Deux constructions éloignées dans le temps peuvent
+# ainsi différer d'un niveau de correctif.
+#
+# C'est délibéré, et c'est le bon arbitrage : sans cette ligne, l'image traîne
+# les CVE système du jour où l'image de base a été publiée, jusqu'à ce que son
+# éditeur la reconstruise — un délai sur lequel Orion n'a aucune prise. La
+# traçabilité est préservée autrement : le scan Trivy de chaque image publiée
+# est archivé, et le re-scan hebdomadaire détecte toute dérive ultérieure.
+USER 0
+RUN apk --no-cache upgrade
+USER 101
+
 COPY --chown=101:101 misc/docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 ENV NGINX_ENVSUBST_FILTER=BACKEND_URL
 ENV BACKEND_URL=http://microcrm-back:8080

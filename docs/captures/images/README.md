@@ -40,10 +40,13 @@ déploiements distincts, dimensionnés et redémarrés indépendamment.
 
 ### Vulnérabilités des images (Trivy, HIGH/CRITICAL corrigibles)
 
-| Image | Avant | Après | Écart |
-|---|---|---|---|
-| **backend** | 31 | **3** | **−90 %** |
-| **frontend** | 55 (base Caddy) | **10** | **−82 %** |
+| Image | Dockerfile fourni | Après réécriture | Après correctifs Alpine | Écart total |
+|---|---|---|---|---|
+| **backend** | 31 | 3 | **0** | **−100 %** |
+| **frontend** | 55 (base Caddy) | 10 | **0** | **−100 %** |
+
+Les trois étapes correspondent à trois décisions distinctes : réécriture des Dockerfiles et montée
+de Spring Boot, changement de serveur web, puis application des correctifs système.
 
 ### Taille des images
 
@@ -63,9 +66,9 @@ Contrairement au cas Angular (voir `.trivyignore.yaml`), les correctifs existaie
 version majeure** : il s'agissait d'une montée **mineure**, au risque de régression bien plus
 faible. Elle a été appliquée et **vérifiée par la suite de tests**, qui reste verte.
 
-**Les 3 vulnérabilités restantes** sont des paquets du système de base (`libexpat`, `p11-kit`,
-`p11-kit-trust`) : leur correction dépend d'une reconstruction de l'image `eclipse-temurin` en
-amont. Elles sont suivies, non ignorées.
+**Les 3 vulnérabilités restantes** étaient des paquets du système de base (`libexpat`, `p11-kit`,
+`p11-kit-trust`), dont le correctif existait dans les dépôts Alpine mais pas encore dans l'image
+publiée en amont. Elles ont été traitées par la troisième décision, ci-dessous.
 
 ### 2. Caddy → nginx-unprivileged (frontend)
 
@@ -85,6 +88,31 @@ privilégié : elle satisfait A7 sans contorsion.
 > **Ce que cette décision illustre** : le scan d'image ne sert pas seulement à bloquer une
 > livraison. Il a orienté ici un **choix d'architecture** — et l'a orienté sur une mesure, pas sur
 > une préférence.
+
+### 3. Application des correctifs système (`apk --no-cache upgrade`)
+
+Après les deux décisions précédentes, il restait **3 CVE côté backend** et **10 côté frontend** —
+toutes des paquets du système de base (`libexpat`, `p11-kit`, `libcrypto3`, `libssl3`, `curl`,
+`c-ares`, `libxml2`). Leur correctif existait **déjà dans les dépôts Alpine**, mais pas encore dans
+les images de base publiées.
+
+Deux réponses possibles :
+
+| Option | Effet | Retenue |
+|---|---|---|
+| Accepter les 13 CVE dans `.trivyignore.yaml` | L'image reste vulnérable en attendant une reconstruction en amont, sur laquelle Orion n'a aucune prise | ❌ |
+| **Appliquer les correctifs à la construction** | Les 13 CVE disparaissent réellement | ✅ |
+
+**Compromis assumé** : la base reste épinglée par digest — le point de départ est déterministe —,
+mais les paquets corrigés sont tirés au moment de la construction. Deux constructions éloignées
+dans le temps peuvent donc différer d'un niveau de correctif.
+
+C'est le bon arbitrage : sans cette instruction, l'image traîne les CVE système du jour où l'image
+de base a été publiée. La traçabilité est préservée autrement — le scan Trivy de chaque image
+publiée est archivé, et le re-scan hebdomadaire détecte toute dérive ultérieure.
+
+**Résultat : 0 vulnérabilité HIGH/CRITICAL corrigible sur les deux images.** La porte de sécurité
+du pipeline peut donc rester stricte, sans aucune exception.
 
 ## Correction connexe : l'URL de l'API
 
