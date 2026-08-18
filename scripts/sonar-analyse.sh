@@ -276,7 +276,23 @@ principal() {
     # d'exécution du scanner porte l'identifiant de la tâche à suivre.
     local rapport="$racine/.scannerwork/report-task.txt"
     local -a options=(--url "$URL" --sortie "$SORTIE")
-    [[ -f "$rapport" ]] && options+=(--rapport-tache "$rapport")
+
+    # La clé de projet est lue dans sonar-project.properties et transmise
+    # explicitement. Sans cela, le script dépendrait entièrement de
+    # `.scannerwork/report-task.txt` — un fichier écrit par le conteneur du
+    # scanner, dont la présence et les droits ne sont pas garantis. C'est
+    # précisément ce qui a fait échouer la première exécution alors que
+    # l'analyse, elle, avait parfaitement réussi.
+    local cle
+    cle=$(sed -n 's/^sonar\.projectKey=//p' "$racine/sonar-project.properties" | head -1)
+    [[ -n "$cle" ]] && options+=(--cle "$cle")
+
+    if [[ -f "$rapport" ]]; then
+        options+=(--rapport-tache "$rapport")
+        log_debug "rapport de tâche trouvé : $rapport"
+    else
+        log_avert "rapport de tâche absent : suivi de l'analyse par interrogation du projet"
+    fi
     [[ $SANS_GATE -eq 1 ]] && options+=(--sans-gate)
 
     local code=0

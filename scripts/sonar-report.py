@@ -213,6 +213,34 @@ def attendre_analyse(client: ClientSonar, task_id: str, delai: int) -> str | Non
     return None
 
 
+def attendre_projet(client: ClientSonar, cle: str, delai: int) -> bool:
+    """Repli lorsque l'identifiant de tâche n'a pas pu être lu.
+
+    Interroge la file de traitement du projet : l'analyse est terminée quand
+    la file est vide et que la dernière tâche s'est achevée avec succès.
+    Moins précis qu'un suivi par identifiant, mais suffisant ici puisqu'une
+    seule analyse est soumise par exécution de pipeline.
+    """
+    info(f"attente du traitement du projet « {cle} » (délai max : {delai}s)…")
+    ecoule = 0
+    while ecoule < delai:
+        donnees = client.get("/api/ce/component", component=cle) or {}
+        file_attente = donnees.get("queue", [])
+        courante = donnees.get("current", {})
+        statut = courante.get("status")
+        journal(f"…file : {len(file_attente)} · tâche courante : {statut} ({ecoule}s)")
+        if not file_attente and statut == "SUCCESS":
+            info(f"analyse traitée après {ecoule}s")
+            return True
+        if not file_attente and statut in ("FAILED", "CANCELED"):
+            erreur(f"le serveur a rejeté l'analyse (statut {statut})")
+            return False
+        time.sleep(5)
+        ecoule += 5
+    erreur(f"analyse non traitée dans le délai de {delai}s")
+    return False
+
+
 # -----------------------------------------------------------------------------
 # Rendu des preuves
 # -----------------------------------------------------------------------------
@@ -402,8 +430,11 @@ def main(argv: list[str] | None = None) -> int:
     if task_id:
         if attendre_analyse(client, task_id, args.delai) is None:
             return 1
-    else:
-        avertir("identifiant de tâche absent : le verdict peut porter sur une analyse antérieure.")
+    elif not attendre_projet(client, cle_projet, args.delai):
+        # Repli : sans identifiant de tâche, on attend que la file de
+        # traitement du PROJET se vide. Sans cette attente, la quality gate
+        # interrogée serait celle de l'analyse précédente — voire inexistante.
+        return 1
 
     # Le statut est demandé par clé de projet plutôt que par analysisId : la
     # réponse reste correcte même si l'identifiant d'analyse n'a pas pu être lu.
