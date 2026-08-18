@@ -53,6 +53,9 @@ env:
   JAVA_DISTRIBUTION: "temurin"
   BASH_UNIT_VERSION: "v2.3.3"
   SHELLCHECK_VERSION: "0.11.0"
+  TRIVY_VERSION: "0.74.0"
+  SONAR_IMAGE: "sonarqube:25.12.0.117093-community"
+  SONAR_SCANNER_IMAGE: "sonarsource/sonar-scanner-cli:12.1.0.3233_8.0.1"
 
 jobs:
   # ===========================================================================
@@ -289,6 +292,119 @@ jobs:
           echo "Cycle sauvegarde → restauration vérifié : contenu identique."
 
   # ===========================================================================
+  # ÉTAPE ④ — SECURITY
+  # Placée après ③ pour deux raisons (docs/03, §4.3) : il est inutile
+  # d'engager 4 minutes d'analyse sur du code dont les tests échouent, et
+  # SonarQube CONSOMME les rapports de couverture, qui n'existent qu'après
+  # l'exécution des tests.
+  # ===========================================================================
+
+  sonarqube:
+    name: "④ Security · SonarQube (SAST + hotspots)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: [test-front, test-back]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          # Analyse complète : SonarQube exploite l'historique Git pour dater
+          # les issues et distinguer le code nouveau du code existant.
+          fetch-depth: 0
+
+      - name: Installer le JDK
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      # Sans les classes compilées, l'analyseur Java se limite à une lecture
+      # syntaxique et ne détecte NI vulnérabilités NI security hotspots.
+      - name: Compiler les classes Java
+        working-directory: app/back
+        run: ./gradlew classes testClasses --console=plain
+
+      - name: Récupérer les rapports de couverture
+        uses: actions/download-artifact@v7.0.0
+        with:
+          path: reports
+          pattern: rapports-*
+          merge-multiple: true
+
+      - name: Vérifier la présence des rapports de couverture
+        run: |
+          ls -R reports || true
+          test -f reports/back/jacoco.xml  || echo "::warning::rapport JaCoCo absent"
+          test -f reports/front/lcov.info  || echo "::warning::rapport LCOV absent"
+
+      # vm.max_map_count est requis par l'Elasticsearch embarqué dans
+      # SonarQube. C'est aussi la raison pour laquelle le serveur est démarré
+      # dans une étape et non via `services:` : ces dernières démarrent avant
+      # toute étape, donc avant que ce paramètre puisse être ajusté.
+      - name: Préparer le noyau pour Elasticsearch
+        run: sudo sysctl -w vm.max_map_count=262144
+
+      - name: Analyser le code et exploiter la quality gate
+        run: ./scripts/sonar-analyse.sh --demarrer --arreter --delai 300
+
+      - name: Publier les preuves d'analyse
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: preuves-sonarqube
+          path: docs/captures/sonarqube/
+          retention-days: 30
+
+  scan-securite:
+    name: "④ Security · dépendances, secrets et configurations"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: [test-front, test-back]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: app/front/package-lock.json
+
+      # Version épinglée plutôt qu'une action tierce : la chaîne de sécurité
+      # ne doit pas elle-même reposer sur un composant non maîtrisé.
+      - name: Installer Trivy (version épinglée)
+        run: |
+          set -euo pipefail
+          curl -sSL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            | tar -xz -C /tmp trivy
+          sudo install /tmp/trivy /usr/local/bin/trivy
+          trivy --version
+
+      # Les dépendances doivent être installées pour que `npm audit` dispose
+      # de l'arbre résolu.
+      - name: Installer les dépendances frontend
+        run: ./scripts/install-deps.sh --composant front
+
+      # Le JAR est nécessaire à l'analyse des dépendances Java : en l'absence
+      # de gradle.lockfile, Trivy lit les bibliothèques embarquées dans le JAR.
+      - name: Récupérer le JAR backend
+        uses: actions/download-artifact@v7.0.0
+        with:
+          name: jar-back
+          path: app/back/build/libs
+
+      - name: Exécuter les contrôles de sécurité
+        run: ./scripts/scan-securite.sh --sortie reports/securite
+
+      - name: Publier les rapports de sécurité
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: rapports-securite
+          path: reports/securite/
+          retention-days: 30
+
+  # ===========================================================================
   # NOTIFICATION — synthèse des résultats du pipeline
   # ===========================================================================
 
@@ -296,7 +412,18 @@ jobs:
     name: "Notification des résultats"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    needs: [lint-front, lint-scripts, build-front, build-back, test-front, test-back, test-scripts]
+    needs:
+      [
+        lint-front,
+        lint-scripts,
+        build-front,
+        build-back,
+        test-front,
+        test-back,
+        test-scripts,
+        sonarqube,
+        scan-securite,
+      ]
     # `always()` : la notification doit précisément se produire quand le
     # pipeline échoue — c'est son cas d'usage principal.
     if: always()
