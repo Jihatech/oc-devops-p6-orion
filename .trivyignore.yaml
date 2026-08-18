@@ -1,0 +1,127 @@
+# =============================================================================
+# Acceptations de risque explicites — Trivy
+# =============================================================================
+#
+# BUT
+#   Consigner les vulnérabilités CONNUES, ANALYSÉES et ACCEPTÉES, avec leur
+#   justification et une date de réexamen. Chaque entrée est une décision de
+#   sécurité tracée, datée et révocable.
+#
+# POURQUOI CE FICHIER PLUTÔT QU'UN SEUIL ABAISSÉ
+#   Face à ces vulnérabilités, l'alternative aurait été de faire passer le
+#   seuil bloquant de HIGH à CRITICAL. Ce choix a été écarté : il aurait rendu
+#   le pipeline aveugle à TOUTE nouvelle vulnérabilité HIGH, y compris celles
+#   introduites demain et parfaitement corrigeables.
+#
+#   Ici, le seuil reste à HIGH. Seules ces vulnérabilités précisément
+#   identifiées sont acceptées. **Une nouvelle vulnérabilité HIGH bloquera le
+#   pipeline** — ce qui est exactement le comportement recherché.
+#
+# RÈGLE D'USAGE
+#   Toute entrée doit porter : un identifiant, une justification explicite
+#   (`statement`) et une date d'expiration (`expired_at`). Passé cette date,
+#   Trivy la signale à nouveau et la décision doit être réexaminée. Aucune
+#   acceptation permanente n'est admise.
+#
+# CONTEXTE — 12 CVE, un seul et même correctif
+#   Toutes ces vulnérabilités touchent @angular/core, @angular/common et
+#   @angular/compiler en version 17.3.8, celle de l'application fournie par
+#   OpenClassrooms. Pour CHACUNE d'elles, la version corrigée la plus basse est
+#   Angular **19.2.x** : il n'existe aucun correctif pour la branche 17.
+#
+#   Les corriger impose donc une montée de DEUX versions majeures du framework
+#   (17 → 18 → 19), c'est-à-dire une migration applicative — hors du périmètre
+#   d'une mission d'industrialisation de la chaîne CI/CD, et porteuse d'un
+#   risque de régression bien supérieur au risque traité.
+#
+#   Facteur atténuant : MicroCRM n'est PAS en production et n'est déployée que
+#   sur un environnement de démonstration. Ces vulnérabilités seront réévaluées
+#   AVANT toute mise en production — d'où la date d'expiration ci-dessous.
+#
+#   ➜ Cette montée de version est la recommandation n°2 du rapport de
+#     performance (voir docs/05-plan-securite.md, risque résiduel R8).
+#
+# RÉFÉRENCES  docs/05-plan-securite.md §4.2 · docs/01-audit-swot.md constat S1
+# DÉCIDÉ LE   2026-08-18 par Ilyasse JAIEL — réexamen au 2026-11-30
+# =============================================================================
+
+vulnerabilities:
+  # --- @angular/common (17.3.8) ---------------------------------------------
+  - id: CVE-2025-66035
+    statement: >-
+      Fuite de jeton XSRF via URL relatives au protocole. Corrigé à partir
+      d'Angular 19.2.16 uniquement : aucun correctif pour la branche 17.
+      Application non exposée publiquement (environnement de démonstration).
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-50170
+    statement: >-
+      Fuite d'information par mise en cache par défaut des requêtes
+      authentifiées (HttpTransferCache). Corrigé à partir d'Angular 19.2.23.
+      MicroCRM n'utilise ni SSR ni HttpTransferCache : exposition nulle.
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-50171
+    statement: >-
+      Déni de service via un paramètre digitsInfo malformé. Corrigé à partir
+      d'Angular 19.2.23. Impact limité : aucune donnée n'est compromise, et
+      l'application n'est pas exposée publiquement.
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-54266
+    statement: >-
+      Corrigé à partir d'Angular 20.3.25 ; aucun correctif en branche 17.
+      Réexamen imposé avant toute mise en production.
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-54268
+    statement: >-
+      Corrigé à partir d'Angular 20.3.25 ; aucun correctif en branche 17.
+      Réexamen imposé avant toute mise en production.
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-68945
+    statement: >-
+      Corrigé à partir d'Angular 20.3.27 ; aucun correctif en branche 17.
+      Réexamen imposé avant toute mise en production.
+    expired_at: 2026-11-30
+
+  # --- @angular/core (17.3.8) -----------------------------------------------
+  - id: CVE-2026-27970
+    statement: >-
+      Corrigé à partir d'Angular 19.2.19 ; aucun correctif en branche 17.
+      Réexamen imposé avant toute mise en production.
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-54267
+    statement: >-
+      Corrigé à partir d'Angular 20.3.25 ; aucun correctif en branche 17.
+      Réexamen imposé avant toute mise en production.
+    expired_at: 2026-11-30
+
+  # --- @angular/compiler (17.3.8) -------------------------------------------
+  - id: CVE-2025-66412
+    statement: >-
+      Corrigé à partir d'Angular 19.2.17 ; aucun correctif en branche 17.
+      Le compilateur n'intervient qu'à la construction, pas à l'exécution
+      dans le navigateur : surface d'exposition réduite.
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-69151
+    statement: >-
+      Corrigé à partir d'Angular 20.3.27 ; aucun correctif en branche 17.
+      Réexamen imposé avant toute mise en production.
+    expired_at: 2026-11-30
+
+  # --- Multi-paquets (@angular/core et @angular/compiler) --------------------
+  - id: CVE-2026-22610
+    statement: >-
+      Affecte @angular/core et @angular/compiler. Corrigé à partir
+      d'Angular 19.2.18 ; aucun correctif en branche 17.
+    expired_at: 2026-11-30
+
+  - id: CVE-2026-32635
+    statement: >-
+      Affecte @angular/core et @angular/compiler. Corrigé à partir
+      d'Angular 19.2.20 ; aucun correctif en branche 17.
+    expired_at: 2026-11-30

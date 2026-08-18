@@ -131,23 +131,38 @@ controle_npm_audit() {
         return 0
     fi
 
-    # Le rapport complet est toujours produit, quel que soit le verdict :
-    # c'est lui qui alimente le suivi de la dette de sécurité.
+    # Deux rapports sont produits, et c'est délibéré :
+    #  - le rapport COMPLET alimente le suivi de la dette de sécurité ;
+    #  - le rapport PRODUCTION (--omit=dev) sert seul de porte bloquante.
+    #
+    # Distinguer les deux n'est pas un assouplissement : une vulnérabilité
+    # d'un outil de construction (Angular CLI, Karma…) n'est jamais servie au
+    # navigateur de l'utilisateur. Bloquer une livraison applicative sur un
+    # risque de chaîne de build serait une erreur de catégorie — le risque
+    # existe, mais il ne relève ni du même modèle de menace ni de la même
+    # priorité de traitement. Il reste rapporté et suivi.
     ( cd "$repertoire" && npm audit --json ) > "$sortie/npm-audit.json" 2>/dev/null || true
+    ( cd "$repertoire" && npm audit --omit=dev --json ) > "$sortie/npm-audit-production.json" 2>/dev/null || true
 
-    local critiques elevees
-    critiques=$(sed -n 's/.*"critical" *: *\([0-9]*\).*/\1/p' "$sortie/npm-audit.json" | head -1)
-    elevees=$(sed -n 's/.*"high" *: *\([0-9]*\).*/\1/p' "$sortie/npm-audit.json" | head -1)
-    critiques="${critiques:-0}" ; elevees="${elevees:-0}"
+    local critiques elevees critiques_dev
+    critiques=$(sed -n 's/.*"critical" *: *\([0-9]*\).*/\1/p' "$sortie/npm-audit-production.json" | head -1)
+    elevees=$(sed -n 's/.*"high" *: *\([0-9]*\).*/\1/p' "$sortie/npm-audit-production.json" | head -1)
+    critiques_dev=$(sed -n 's/.*"critical" *: *\([0-9]*\).*/\1/p' "$sortie/npm-audit.json" | head -1)
+    critiques="${critiques:-0}" ; elevees="${elevees:-0}" ; critiques_dev="${critiques_dev:-0}"
 
-    log_info "vulnérabilités npm — critiques : $critiques, élevées : $elevees"
-    resume_ci "npm audit" "$critiques critique(s), $elevees élevée(s)"
+    log_info "dépendances de PRODUCTION — critiques : $critiques, élevées : $elevees"
+    log_info "toutes dépendances (dont outils de build) — critiques : $critiques_dev"
+    resume_ci "npm audit (production)" "$critiques critique(s), $elevees élevée(s)"
+
+    if [[ "$critiques_dev" -gt "$critiques" ]]; then
+        log_avert "$((critiques_dev - critiques)) vulnérabilité(s) critique(s) dans les dépendances de développement — rapportées, non bloquantes"
+    fi
 
     if [[ "$critiques" -gt 0 ]]; then
-        log_erreur "$critiques vulnérabilité(s) CRITIQUE(S) dans les dépendances npm"
+        log_erreur "$critiques vulnérabilité(s) CRITIQUE(S) dans les dépendances de production"
         PROBLEMES=$((PROBLEMES + 1))
     else
-        log_ok "aucune vulnérabilité critique dans les dépendances npm"
+        log_ok "aucune vulnérabilité critique dans les dépendances de production"
     fi
 }
 
@@ -166,6 +181,17 @@ controle_dependances() {
     )
     [[ $NON_CORRIGEES -eq 0 ]] && options+=(--ignore-unfixed)
 
+    # Acceptations de risque explicites, datées et justifiées. Le seuil reste
+    # à HIGH : seules les vulnérabilités nommément listées sont acceptées, si
+    # bien qu'une NOUVELLE vulnérabilité HIGH bloquera toujours le pipeline.
+    local ignorefile="$racine/.trivyignore.yaml"
+    if [[ -f "$ignorefile" ]]; then
+        options+=(--ignorefile "$ignorefile")
+        local acceptees
+        acceptees=$(grep -c '^  - id:' "$ignorefile" || echo 0)
+        log_info "acceptations de risque explicites : $acceptees (voir .trivyignore.yaml)"
+    fi
+
     # Le JAR Spring Boot est analysé explicitement : Trivy sait y lire les
     # bibliothèques embarquées, ce qui couvre les dépendances Java là où
     # l'absence de gradle.lockfile empêche une analyse du manifeste.
@@ -179,9 +205,10 @@ controle_dependances() {
     resume_ci "Trivy — dépendances" "$nb vulnérabilité(s) $SEVERITE"
 
     if [[ "$nb" -gt 0 ]]; then
-        log_erreur "$nb vulnérabilité(s) $SEVERITE avec correctif disponible"
-        trivy fs --scanners vuln --severity "$SEVERITE" --ignore-unfixed \
-            --no-progress --format table "$racine/app" 2>/dev/null | head -40 || true
+        log_erreur "$nb vulnérabilité(s) $SEVERITE avec correctif disponible et NON acceptée(s)"
+        local -a options_table=(fs --scanners vuln --severity "$SEVERITE" --ignore-unfixed --no-progress --format table)
+        [[ -f "$ignorefile" ]] && options_table+=(--ignorefile "$ignorefile")
+        trivy "${options_table[@]}" "$racine/app" 2>/dev/null | head -40 || true
         PROBLEMES=$((PROBLEMES + 1))
     else
         log_ok "aucune vulnérabilité $SEVERITE corrigible dans les dépendances"
