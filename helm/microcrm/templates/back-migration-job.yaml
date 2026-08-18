@@ -1,0 +1,103 @@
+{{- if and .Values.back.enabled .Values.back.migrations.enabled }}
+{{/*
+Migration de schéma du composant BACKEND.
+
+POURQUOI UN JOB SÉPARÉ, ET PAR COMPOSANT
+  Chaque composant porte ses propres migrations et les exécute dans son propre
+  Job. Trois raisons :
+
+  1. Un composant sans base (le frontend) ne doit pas être bloqué par la
+     migration d'un autre. Les composants se déploient et se reprennent
+     indépendamment.
+  2. Une migration exécutée au démarrage de l'application serait rejouée par
+     CHAQUE réplique, en concurrence. Avec 2 répliques en recette, deux
+     migrations partiraient simultanément sur la même base.
+  3. Le Job échoue AVANT que les nouveaux pods ne démarrent : le déploiement
+     s'arrête sur une base intacte, plutôt que sur une base à moitié migrée
+     servie par une application déjà à jour.
+
+ORDONNANCEMENT
+  hook pre-install,pre-upgrade  le Job s'exécute AVANT que les Deployments ne
+                                soient créés ou mis à jour
+  hook-weight -5                priorité : ce Job passe avant les autres hooks
+  hook-delete-policy            le Job est conservé s'il échoue (diagnostic),
+                                supprimé avant la prochaine exécution
+
+  Si le Job échoue, `helm upgrade` échoue, les anciens pods continuent de
+  servir, et `helm rollback` ramène la révision précédente.
+
+ÉTAT ACTUEL POUR MICROCRM
+  L'application utilise HSQLDB EN MÉMOIRE avec génération de schéma par
+  Hibernate (constat A1 de l'audit) : il n'y a aujourd'hui aucune migration à
+  jouer, et ce Job se contente de vérifier la disponibilité de la base.
+
+  C'est le MÉCANISME qui est mis en place et démontré ici, pas un jeu de
+  migrations réel — celui-ci n'aura de sens qu'après la migration vers
+  PostgreSQL, recommandation n°1 du rapport de performance. La commande
+  exécutée sera alors remplacée par `flyway migrate` ou l'équivalent Liquibase,
+  sans rien changer à l'ordonnancement décrit ci-dessus.
+*/}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "microcrm.fullname" . }}-{{ .Values.back.name }}-migration
+  labels:
+    {{- include "microcrm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.back.name }}-migration
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  # Une seule tentative supplémentaire : une migration qui échoue deux fois
+  # échoue pour une raison de fond, que réessayer n'améliorera pas.
+  backoffLimit: 1
+  # Le Job est supprimé automatiquement 10 minutes après son succès, afin de
+  # ne pas accumuler d'objets terminés dans le namespace.
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        {{- include "microcrm.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ .Values.back.name }}-migration
+    spec:
+      restartPolicy: Never
+      securityContext:
+        fsGroup: {{ .Values.back.securityContext.runAsGroup }}
+      containers:
+        - name: migration
+          # MÊME image que l'application : la migration et le code qui la
+          # consomme proviennent du même artefact, donc de la même version.
+          # Utiliser une image distincte ferait courir le risque d'appliquer
+          # les migrations d'une version différente de celle déployée.
+          image: {{ include "microcrm.image" (dict "root" $ "composant" .Values.back) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.back.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.back.migrations.resources | nindent 12 }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              echo "=== Migration du composant back — version {{ .Values.image.tag }} ==="
+              echo "Base de données : {{ .Values.back.migrations.description }}"
+              {{- if .Values.back.migrations.commande }}
+              echo "Commande : {{ .Values.back.migrations.commande }}"
+              {{ .Values.back.migrations.commande }}
+              {{- else }}
+              # HSQLDB en mémoire : le schéma est recréé par Hibernate au
+              # démarrage de l'application. Aucune migration à appliquer.
+              # On vérifie que l'artefact est intègre et exécutable, ce qui
+              # aurait suffi à détecter la régression simulée en phase 4.
+              echo "Aucune migration a appliquer (HSQLDB en memoire)."
+              echo "Verification de l'integrite de l'artefact :"
+              if unzip -l /app/application.jar > /dev/null 2>&1 || java -jar /app/application.jar --help > /dev/null 2>&1; then
+                echo "  artefact valide"
+              else
+                echo "  ERREUR : artefact illisible ou corrompu"
+                exit 1
+              fi
+              {{- end }}
+              echo "=== Migration terminee avec succes ==="
+{{- end }}

@@ -65,6 +65,28 @@ back:
       initialDelaySeconds: 30
       periodSeconds: 20
 
+  # Migrations de schéma, exécutées dans un Job Helm PROPRE AU COMPOSANT,
+  # avant que les nouveaux pods ne démarrent (voir templates/back-migration-job.yaml).
+  #
+  # Le principe « une migration par composant » évite trois écueils :
+  #  - un composant sans base bloqué par la migration d'un autre ;
+  #  - une migration rejouée en concurrence par chaque réplique ;
+  #  - une base à moitié migrée servie par une application déjà à jour.
+  migrations:
+    enabled: true
+    description: "HSQLDB en memoire (schema genere par Hibernate)"
+    # Commande à exécuter. Vide aujourd'hui : il n'y a pas de migration à
+    # jouer sur une base en mémoire. Deviendra `flyway migrate` ou
+    # l'équivalent Liquibase après la migration vers PostgreSQL.
+    commande: ""
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
   # Persistance désactivée par défaut : l'application utilise HSQLDB EN MÉMOIRE
   # (constat A1 de l'audit). Un volume n'aurait rien à persister aujourd'hui.
   # Le gabarit existe pour être activé le jour de la migration vers PostgreSQL,

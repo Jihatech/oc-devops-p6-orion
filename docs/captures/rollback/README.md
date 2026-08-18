@@ -97,6 +97,81 @@ Le mode `--atomic` n'a délibérément **pas** été utilisé dans cette démons
 l'état intermédiaire, qui est précisément ce qu'il fallait montrer — un déploiement en échec, un
 service toujours disponible, et le choix explicite de revenir en arrière.
 
+## Migrations par composant — mécanisme et démonstration
+
+> Journal complet : [`migrations.log`](migrations.log). Gabarit :
+> [`helm/microcrm/templates/back-migration-job.yaml`](../../../helm/microcrm/templates/back-migration-job.yaml).
+
+Chaque composant porte ses propres migrations et les exécute dans **son propre Job Helm**, déclenché
+en `pre-install,pre-upgrade` — c'est-à-dire **avant** que les Deployments ne soient créés ou modifiés.
+
+### Pourquoi un Job séparé, et par composant
+
+| Écueil évité | Sans Job par composant |
+|---|---|
+| Couplage entre composants | Le frontend, qui n'a pas de base, serait bloqué par la migration du backend |
+| Concurrence entre répliques | Une migration lancée au démarrage de l'application serait rejouée par **chaque réplique** — en recette, 2 migrations simultanées sur la même base |
+| Base à moitié migrée | Sans arrêt préalable, une migration partielle serait servie par une application déjà à jour |
+
+### Démonstration exécutée
+
+**Cas nominal** — mise à jour vers 1.0.0 :
+
+```
+=== Migration du composant back — version 1.0.0 ===
+Base de données : HSQLDB en memoire (schema genere par Hibernate)
+Aucune migration a appliquer (HSQLDB en memoire).
+Verification de l'integrite de l'artefact :
+  artefact valide
+=== Migration terminee avec succes ===
+```
+
+**Cas d'échec** — mise à jour vers 1.1.0 (artefact corrompu) :
+
+```
+Verification de l'integrite de l'artefact :
+  ERREUR : artefact illisible ou corrompu
+
+Error: UPGRADE FAILED: pre-upgrade hooks failed:
+  resource Job/orion-dev/microcrm-back-migration not ready. status: Failed
+```
+
+État des pods immédiatement après :
+
+```
+microcrm-back-c776cdcc9-5pftr     true    orion-microcrm-back:1.0.0
+microcrm-front-76dd897dc6-b2flw   true    orion-microcrm-front:1.0.0
+```
+
+### Le résultat à retenir
+
+**Aucun pod n'a été remplacé.** Le déploiement s'est arrêté au stade du hook, avant toute
+modification de l'état du cluster.
+
+C'est la différence essentielle avec la démonstration de rollback plus haut :
+
+| | Détection par les **sondes** | Détection par le **hook de migration** |
+|---|---|---|
+| Moment | Après création du nouveau pod | **Avant** toute modification |
+| État du cluster | Un pod défaillant existe (non prêt) | **Inchangé** |
+| Action corrective | `helm rollback` nécessaire | **Aucune** — rien n'a bougé |
+| Coût | Un cycle de déploiement + un rollback | Un Job de quelques secondes |
+
+Les deux mécanismes sont complémentaires : le hook attrape ce qui est détectable **avant** le
+déploiement (artefact corrompu, migration impossible, base injoignable), les sondes attrapent ce qui
+ne se révèle qu'à l'exécution. **Le meilleur rollback reste celui qu'on n'a pas besoin de faire.**
+
+### Ce qui est démontré, et ce qui ne l'est pas
+
+Il faut être précis : c'est le **mécanisme d'ordonnancement** qui est mis en place et éprouvé, pas
+un jeu de migrations réel. MicroCRM utilise HSQLDB **en mémoire** avec génération de schéma par
+Hibernate (constat A1 de l'audit) — il n'y a aujourd'hui aucune migration à jouer.
+
+Le Job exécute donc un contrôle d'intégrité de l'artefact, qui a l'avantage d'être un test réel et
+non un simulacre — il a effectivement détecté la régression. Après migration vers PostgreSQL
+(recommandation n°1 du rapport), la commande sera remplacée par `flyway migrate` ou l'équivalent
+Liquibase via `back.migrations.commande`, **sans rien changer à l'ordonnancement décrit ici**.
+
 ## Reproduire la démonstration
 
 ```bash
