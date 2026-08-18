@@ -2,6 +2,12 @@
 
 Ce fichier est genere automatiquement par semantic-release a partir des messages de commit conventionnels. Ne pas le modifier a la main.
 
+## [1.3.0](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.2.0...v1.3.0) (2026-08-18)
+
+### Fonctionnalités
+
+* **elk:** centraliser les journaux et outiller l'observabilite ([ff2a168](https://github.com/Jihatech/oc-devops-p6-orion/commit/ff2a168f5756306f9fca069a249a062abaa3744e))
+
 ## [1.2.0](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.1.1...v1.2.0) (2026-08-18)
 
 ### Fonctionnalités
