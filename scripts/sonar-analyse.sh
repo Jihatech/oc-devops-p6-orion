@@ -213,8 +213,18 @@ initialiser_compte() {
     export SONAR_TOKEN
     # Masquage explicite dans les journaux GitHub Actions : même éphémère, un
     # jeton ne doit jamais apparaître en clair dans une sortie conservée.
-    [[ -n "${GITHUB_ACTIONS:-}" ]] && echo "::add-mask::$SONAR_TOKEN"
-    log_ok "jeton d'analyse obtenu (valeur masquée)"
+    if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+        echo "::add-mask::$SONAR_TOKEN"
+        echo "::add-mask::$nouveau"
+        log_ok "jeton d'analyse obtenu (valeur masquée)"
+    else
+        # Hors CI, le serveur reste consultable après l'analyse : l'opérateur a
+        # besoin du mot de passe pour ouvrir le tableau de bord et en tirer des
+        # captures. Il n'est affiché QUE dans ce cas — jamais dans un journal
+        # de CI conservé.
+        log_ok "jeton d'analyse obtenu"
+        log_info "tableau de bord : $URL — identifiants  admin / $nouveau"
+    fi
 }
 
 lancer_scanner() {

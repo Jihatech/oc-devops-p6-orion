@@ -1,0 +1,1496 @@
+{
+  "horodatage": "2026-08-18T02:17:27Z",
+  "commit": "6b391ebc8621",
+  "execution": "32091061723",
+  "cle_projet": "orion-microcrm",
+  "quality_gate": {
+    "status": "OK",
+    "conditions": [],
+    "ignoredConditions": false,
+    "caycStatus": "compliant"
+  },
+  "mesures": {
+    "coverage": "37.4",
+    "bugs": "0",
+    "reliability_rating": "1.0",
+    "code_smells": "33",
+    "duplicated_lines_density": "2.4",
+    "security_rating": "1.0",
+    "ncloc": "967",
+    "vulnerabilities": "0",
+    "security_hotspots": "0",
+    "sqale_index": "77",
+    "sqale_rating": "1.0"
+  },
+  "issues": [
+    {
+      "key": "abafa30e-51f7-48fd-b641-b3b7823c9bcb",
+      "rule": "css:S4667",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/app.component.css",
+      "project": "orion-microcrm",
+      "line": 1,
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 0,
+        "endOffset": 0
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Unexpected empty source",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "",
+      "tags": [],
+      "creationDate": "2026-08-18T02:17:01+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "ffbf5b53-6789-443e-b9b1-821dceefb9ec",
+      "rule": "css:S4667",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/main-dashboard/main-dashboard.component.css",
+      "project": "orion-microcrm",
+      "line": 1,
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 0,
+        "endOffset": 0
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Unexpected empty source",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "",
+      "tags": [],
+      "creationDate": "2026-08-18T02:17:01+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c7104d1b-7c01-4489-ad1e-ffefdc53db66",
+      "rule": "css:S4667",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/organization-details/organization-details.component.css",
+      "project": "orion-microcrm",
+      "line": 1,
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 0,
+        "endOffset": 0
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Unexpected empty source",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "",
+      "tags": [],
+      "creationDate": "2026-08-18T02:17:01+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "6ef23f57-996b-42bf-be5a-e7373366cd29",
+      "rule": "css:S4667",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.css",
+      "project": "orion-microcrm",
+      "line": 1,
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 0,
+        "endOffset": 0
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Unexpected empty source",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "",
+      "tags": [],
+      "creationDate": "2026-08-18T02:17:01+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "6d83abfd-2d53-42fc-9b55-2d027f9b2db3",
+      "rule": "java:S1170",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/back/src/main/java/com/openclassroom/devops/orion/microcrm/InitialDataFixture.java",
+      "project": "orion-microcrm",
+      "line": 15,
+      "hash": "766e6ae7949c708c38a30dbf83bcb632",
+      "textRange": {
+        "startLine": 15,
+        "endLine": 15,
+        "startOffset": 35,
+        "endOffset": 51
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Make this final field static too.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "convention"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "EFFICIENT",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "f8e425bd-a69a-4d99-93fe-d1f2e411cf6a",
+      "rule": "java:S1170",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/back/src/main/java/com/openclassroom/devops/orion/microcrm/InitialDataFixture.java",
+      "project": "orion-microcrm",
+      "line": 18,
+      "hash": "7f04c6810719bda961dfa690331aabe0",
+      "textRange": {
+        "startLine": 18,
+        "endLine": 18,
+        "startOffset": 41,
+        "endOffset": 63
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Make this final field static too.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "convention"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "EFFICIENT",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "897683c2-0948-4d8f-b9c2-1eb953eb53dc",
+      "rule": "java:S2293",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/back/src/main/java/com/openclassroom/devops/orion/microcrm/Organization.java",
+      "project": "orion-microcrm",
+      "line": 35,
+      "hash": "755e6ffbd0ac5d8c3f678590ff33ceac",
+      "textRange": {
+        "startLine": 35,
+        "endLine": 35,
+        "startOffset": 34,
+        "endOffset": 42
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Replace the type specification in this constructor call with the diamond operator (\"<>\").",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "clumsy"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "d7b2199b-cbad-4455-af67-3169ebb03be4",
+      "rule": "java:S2293",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/back/src/main/java/com/openclassroom/devops/orion/microcrm/Organization.java",
+      "project": "orion-microcrm",
+      "line": 43,
+      "hash": "755e6ffbd0ac5d8c3f678590ff33ceac",
+      "textRange": {
+        "startLine": 43,
+        "endLine": 43,
+        "startOffset": 34,
+        "endOffset": 42
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Replace the type specification in this constructor call with the diamond operator (\"<>\").",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "clumsy"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "acf8cea1-553b-4ee6-bf1e-a29f6f9e2334",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/main-dashboard/main-dashboard.component.ts",
+      "project": "orion-microcrm",
+      "line": 18,
+      "hash": "0fe4bfb413015de318b38af30c85177b",
+      "textRange": {
+        "startLine": 18,
+        "endLine": 18,
+        "startOffset": 52,
+        "endOffset": 79
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'organizationService: OrganizationService' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "b2e577e8-68bb-4a58-a5ea-bd4b3bd8d61f",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/main-dashboard/main-dashboard.component.ts",
+      "project": "orion-microcrm",
+      "line": 18,
+      "hash": "0fe4bfb413015de318b38af30c85177b",
+      "textRange": {
+        "startLine": 18,
+        "endLine": 18,
+        "startOffset": 14,
+        "endOffset": 35
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'personService: PersonService' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "983c6eec-93e4-47c9-898e-08e47078d145",
+      "rule": "Web:S6853",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/organization-details/organization-details.component.html",
+      "project": "orion-microcrm",
+      "line": 32,
+      "hash": "16ad718c8925dded65485f1662ed1d98",
+      "textRange": {
+        "startLine": 32,
+        "endLine": 32,
+        "startOffset": 10,
+        "endOffset": 31
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "A form label must be associated with a control.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "accessibility"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "11bf480a-ea9f-4d50-b2a0-e60951f25041",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/organization-details/organization-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 26,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 26,
+        "endLine": 26,
+        "startOffset": 83,
+        "endOffset": 110
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'organizationService: OrganizationService' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "7591ed93-721f-495f-8c53-ae2d88805685",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/organization-details/organization-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 26,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 26,
+        "endLine": 26,
+        "startOffset": 14,
+        "endOffset": 27
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'route: ActivatedRoute' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "8f80b9db-e8be-41d2-82d4-eca29cb360d4",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/organization-details/organization-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 26,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 26,
+        "endLine": 26,
+        "startOffset": 133,
+        "endOffset": 147
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'router: Router' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "d2403f9c-833b-4a06-96c7-41503c1ebbeb",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/organization-details/organization-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 26,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 26,
+        "endLine": 26,
+        "startOffset": 45,
+        "endOffset": 66
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'personService: PersonService' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c23d7156-4534-4c83-8b61-55f61f8ae1ca",
+      "rule": "typescript:S7773",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/front/src/app/organization-details/organization-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 36,
+      "hash": "989792358345e7ca43030beb21069538",
+      "textRange": {
+        "startLine": 36,
+        "endLine": 36,
+        "startOffset": 20,
+        "endOffset": 28
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `Number.parseInt` over `parseInt`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "convention",
+        "es2015"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        },
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "d03adb8f-2027-4d80-bb14-0094c6582965",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/organization.service.ts",
+      "project": "orion-microcrm",
+      "line": 10,
+      "hash": "9360b5a16f3c702a8011ecc0dbca92ef",
+      "textRange": {
+        "startLine": 10,
+        "endLine": 10,
+        "startOffset": 14,
+        "endOffset": 28
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'client: HttpClient' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "23a27809-7750-4a6d-9d7f-0d84e3e9d451",
+      "rule": "typescript:S3626",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/front/src/app/organization.service.ts",
+      "project": "orion-microcrm",
+      "line": 37,
+      "hash": "e70c4df10ef0983b9c8c31bd06b2a2c3",
+      "textRange": {
+        "startLine": 37,
+        "endLine": 37,
+        "startOffset": 4,
+        "endOffset": 10
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this redundant jump.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "redundant",
+        "clumsy"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "6c9270e9-8bbd-41da-918a-6834d52270bb",
+      "rule": "typescript:S3626",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/front/src/app/organization.service.ts",
+      "project": "orion-microcrm",
+      "line": 67,
+      "hash": "e70c4df10ef0983b9c8c31bd06b2a2c3",
+      "textRange": {
+        "startLine": 67,
+        "endLine": 67,
+        "startOffset": 4,
+        "endOffset": 10
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this redundant jump.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "redundant",
+        "clumsy"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "e4c29f69-71bf-4d4f-ad0a-5b3715a541d7",
+      "rule": "typescript:S3626",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/front/src/app/organization.service.ts",
+      "project": "orion-microcrm",
+      "line": 75,
+      "hash": "e70c4df10ef0983b9c8c31bd06b2a2c3",
+      "textRange": {
+        "startLine": 75,
+        "endLine": 75,
+        "startOffset": 4,
+        "endOffset": 10
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this redundant jump.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "redundant",
+        "clumsy"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "bb443f8f-408f-4889-bf01-e5cd1e273e78",
+      "rule": "Web:S6853",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.html",
+      "project": "orion-microcrm",
+      "line": 34,
+      "hash": "9af650e471227c6b1e75764bdbe5b194",
+      "textRange": {
+        "startLine": 34,
+        "endLine": 34,
+        "startOffset": 10,
+        "endOffset": 31
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "A form label must be associated with a control.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "accessibility"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "a97b744f-cf15-4c90-a01f-ee2094af4998",
+      "rule": "Web:S6853",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.html",
+      "project": "orion-microcrm",
+      "line": 60,
+      "hash": "658fa8ac4d8358368fc7daf9ec13cca4",
+      "textRange": {
+        "startLine": 60,
+        "endLine": 60,
+        "startOffset": 10,
+        "endOffset": 31
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "A form label must be associated with a control.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "accessibility"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "f546edc7-0a48-4f93-9d1b-22269e65362a",
+      "rule": "Web:S6853",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.html",
+      "project": "orion-microcrm",
+      "line": 86,
+      "hash": "e2c276f5467145e1b094447ecedd6b94",
+      "textRange": {
+        "startLine": 86,
+        "endLine": 86,
+        "startOffset": 10,
+        "endOffset": 31
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "A form label must be associated with a control.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "accessibility"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "6cef37e0-5302-40b0-aa94-c2eb4cfc7d35",
+      "rule": "Web:S6853",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.html",
+      "project": "orion-microcrm",
+      "line": 111,
+      "hash": "9c4b85230a1ef676a44578a0df3cb280",
+      "textRange": {
+        "startLine": 111,
+        "endLine": 111,
+        "startOffset": 10,
+        "endOffset": 31
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "A form label must be associated with a control.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "accessibility"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c43252c4-8b4e-40e8-859f-2147179b9952",
+      "rule": "Web:S6853",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.html",
+      "project": "orion-microcrm",
+      "line": 138,
+      "hash": "b52f9f079574f5d50cdfb7094297990a",
+      "textRange": {
+        "startLine": 138,
+        "endLine": 138,
+        "startOffset": 10,
+        "endOffset": 31
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "A form label must be associated with a control.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "accessibility"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "3022ce37-2f5c-467d-ba4f-a8019902ea80",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 32,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 32,
+        "endLine": 32,
+        "startOffset": 83,
+        "endOffset": 110
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'organizationService: OrganizationService' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "4eee6e31-348f-416c-89a5-f2619472f31a",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 32,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 32,
+        "endLine": 32,
+        "startOffset": 14,
+        "endOffset": 27
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'route: ActivatedRoute' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "56bcdaee-8b87-4924-a662-742bad8eac78",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 32,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 32,
+        "endLine": 32,
+        "startOffset": 133,
+        "endOffset": 147
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'router: Router' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "a2d7eaec-e0a1-4f54-a68c-1292ceee2179",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 32,
+      "hash": "8bddc5c80fdad35fa13f428ae513e3b6",
+      "textRange": {
+        "startLine": 32,
+        "endLine": 32,
+        "startOffset": 45,
+        "endOffset": 66
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'personService: PersonService' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c082401a-f066-400d-a0e0-979aa033bb7c",
+      "rule": "typescript:S7773",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/front/src/app/person-details/person-details.component.ts",
+      "project": "orion-microcrm",
+      "line": 50,
+      "hash": "607f4aae709411a30857abae72e33120",
+      "textRange": {
+        "startLine": 50,
+        "endLine": 50,
+        "startOffset": 23,
+        "endOffset": 31
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `Number.parseInt` over `parseInt`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "convention",
+        "es2015"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "MEDIUM"
+        },
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "df77bf8d-01cd-462d-81f0-d34b03d806e0",
+      "rule": "typescript:S2933",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/app/person.service.ts",
+      "project": "orion-microcrm",
+      "line": 9,
+      "hash": "9360b5a16f3c702a8011ecc0dbca92ef",
+      "textRange": {
+        "startLine": 9,
+        "endLine": 9,
+        "startOffset": 14,
+        "endOffset": 28
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Member 'client: HttpClient' is never reassigned; mark it as `readonly`.",
+      "effort": "2min",
+      "debt": "2min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "type-dependent",
+        "confusing"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "79ac9a59-7c84-4890-ac7a-1069a3b5fe9a",
+      "rule": "typescript:S3626",
+      "severity": "MINOR",
+      "component": "orion-microcrm:app/front/src/app/person.service.ts",
+      "project": "orion-microcrm",
+      "line": 37,
+      "hash": "e70c4df10ef0983b9c8c31bd06b2a2c3",
+      "textRange": {
+        "startLine": 37,
+        "endLine": 37,
+        "startOffset": 4,
+        "endOffset": 10
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this redundant jump.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "redundant",
+        "clumsy"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "ced75f01-a075-49bd-8e35-76e7d976f991",
+      "rule": "typescript:S7785",
+      "severity": "MAJOR",
+      "component": "orion-microcrm:app/front/src/main.ts",
+      "project": "orion-microcrm",
+      "line": 6,
+      "hash": "9af508596122012278340558e43ef687",
+      "textRange": {
+        "startLine": 6,
+        "endLine": 6,
+        "startOffset": 3,
+        "endOffset": 8
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer top-level await over using a promise chain.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "j.ilyasse@gmail.com",
+      "tags": [
+        "async",
+        "es2022",
+        "modernize"
+      ],
+      "creationDate": "2026-08-17T03:48:52+0000",
+      "updateDate": "2026-08-18T02:17:01+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    }
+  ],
+  "hotspots": []
+}

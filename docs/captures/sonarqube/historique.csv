@@ -1,2 +1,3 @@
 horodatage,commit,execution,quality_gate,bugs,vulnerabilites,security_hotspots,code_smells,couverture,duplication,lignes_de_code,note_securite,note_fiabilite,note_maintenabilite
 2026-08-18T02:10:41Z,bc6d7a901f89,32090656006,OK,2,0,0,35,37.4,2.5,960,A,C,A
+2026-08-18T02:17:27Z,6b391ebc8621,32091061723,OK,0,0,0,33,37.4,2.4,967,A,A,A

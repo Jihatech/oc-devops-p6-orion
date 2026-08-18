@@ -12,7 +12,7 @@
 |---|---|---|
 | 1 | Audit, veille, normalisation du pipeline | ✅ **Terminée** |
 | 2 | Pipeline CI + scripts d'automatisation | ✅ **Terminée** — [pipeline vert](https://github.com/Jihatech/oc-devops-p6-orion/actions) |
-| 3 | DevSecOps — SonarQube, Trivy, plans de tests et de sécurité | ⏳ À venir |
+| 3 | DevSecOps — SonarQube, Trivy, plans de tests et de sécurité | ✅ **Terminée** |
 | 4 | Conteneurisation, Kubernetes + Helm, releases et rollback | ⏳ À venir |
 | 5 | Terraform, Ansible, ELK, métriques DORA | ⏳ À venir |
 | 6 | Consolidation des livrables finaux | ⏳ À venir |
@@ -55,6 +55,9 @@ Artefacts de livraison : **2 images Docker** (`front`, `back`) publiées sur **G
 | [`docs/01-audit-swot.md`](docs/01-audit-swot.md) | Audit du processus CI existant : SWOT, goulots d'étranglement, lacunes de sécurité mappées OWASP |
 | [`docs/02-veille-recommandations.md`](docs/02-veille-recommandations.md) | Veille comparative (8 familles d'outils), recommandations argumentées, solutions **écartées**, priorisation MoSCoW |
 | [`docs/03-normalisation-plan-ci.md`](docs/03-normalisation-plan-ci.md) | Structure cible du pipeline, **ordre d'exécution argumenté**, portes de qualité, schémas Mermaid |
+| [`docs/04-plan-tests.md`](docs/04-plan-tests.md) | 16 types de tests (périmètre, outil, fréquence, critères), exclusions motivées, seuils chiffrés |
+| [`docs/05-plan-securite.md`](docs/05-plan-securite.md) | Objectifs, contrôles, gestion des secrets, **mapping OWASP Top 10**, réponse à incident, risques résiduels |
+| [`docs/captures/sonarqube/`](docs/captures/sonarqube/) | **Preuves d'analyse et comparaison avant/après** |
 | [`docs/JOURNAL_IA.md`](docs/JOURNAL_IA.md) | Méthodologie, décisions et arbitrages, usage de l'IA |
 
 ## Chaîne cible en un coup d'œil
@@ -94,22 +97,27 @@ Artefacts de livraison : **2 images Docker** (`front`, `back`) publiées sur **G
 
 ## Pipeline d'intégration continue
 
-Défini dans [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — 8 jobs, **durée mesurée :
-1 min 45 s**.
+Défini dans [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — **10 jobs**.
 
 | Étape | Jobs | Contrôles |
 |---|---|---|
 | ① lint | `lint-front`, `lint-scripts` | ESLint · ShellCheck (version épinglée) · syntaxe Python · bits exécutables |
 | ② build | `build-front`, `build-back` | Bundle Angular de production · JAR Spring Boot — publiés en artefacts |
-| ③ test | `test-front`, `test-back`, `test-scripts` | Karma + LCOV · JUnit + JaCoCo · 27 tests bash_unit · **cycle sauvegarde → restauration vérifié** |
+| ③ test | `test-front`, `test-back`, `test-scripts` | Karma + LCOV · JUnit + JaCoCo · 31 tests bash_unit · **cycle sauvegarde → restauration vérifié** |
+| ④ security | `sonarqube`, `scan-securite` | SonarQube (SAST + hotspots + **quality gate bloquante**) · `npm audit` · Trivy `fs`, `secret`, `config` |
 | — | `notification` | Synthèse Markdown dans l'onglet Actions, issue de suivi sur échec |
 
-Les étapes ④ *security* (SonarQube, Trivy) et ⑤ *package* (GHCR, semantic-release) arrivent aux
-phases 3 et 4.
+L'étape ⑤ *package* (GHCR, semantic-release) arrive en phase 4.
 
-**Résultats de la dernière exécution** : 10 tests (8 front + 2 back), 100 % de réussite ·
-couverture backend **65,9 %** · couverture frontend **30,8 %** · 0 erreur ESLint (12 avertissements
-suivis) · 0 défaut ShellCheck.
+**Résultats de la dernière exécution** :
+
+| Indicateur | Valeur |
+|---|---|
+| Tests | **10** (8 front + 2 back), 100 % de réussite · **31** tests bash_unit |
+| Couverture | backend **65,9 %** · frontend **30,8 %** · projet **37,4 %** |
+| Quality gate SonarQube | ✅ OK — 0 vulnérabilité, 0 hotspot, **0 bug**, note de sécurité **A** |
+| Lint | 0 erreur ESLint (10 avertissements suivis) · 0 défaut ShellCheck |
+| Sécurité des dépendances | 0 critique en production · **12 CVE acceptées explicitement et datées** |
 
 ## Scripts d'automatisation
 
@@ -124,6 +132,9 @@ CONDITIONS D'EXÉCUTION**, exemples et codes de sortie. `--aide` l'affiche.
 | [`scripts/deploy-build.sh`](scripts/deploy-build.sh) | Déploiement Docker avec **test de fumée et rollback automatique** |
 | [`scripts/backup.sh`](scripts/backup.sh) | Sauvegarde vérifiée (SHA-256 + manifeste) **et restauration** |
 | [`scripts/notify.py`](scripts/notify.py) | Synthèse de pipeline — GitHub Summary, issue sur échec (sans dépendance externe) |
+| [`scripts/scan-securite.sh`](scripts/scan-securite.sh) | Contrôles de sécurité — dépendances, secrets, configurations |
+| [`scripts/sonar-analyse.sh`](scripts/sonar-analyse.sh) | Analyse SonarQube — serveur éphémère, jeton généré à l'exécution |
+| [`scripts/sonar-report.py`](scripts/sonar-report.py) | Quality gate et export des preuves d'analyse |
 
 ### Utilisation locale (reproductible)
 
@@ -152,8 +163,19 @@ python3 scripts/notify.py --statut succes --rapports reports --canal console
 shellcheck --shell=bash --severity=style --external-sources \
     scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh   # 0 défaut
 
-bash_unit scripts/tests/test_commun.sh                 # 27 tests
+bash_unit scripts/tests/test_commun.sh                 # 31 tests
 ```
+
+### Contrôles de sécurité
+
+```bash
+./scripts/scan-securite.sh                             # dépendances, secrets, configurations
+./scripts/sonar-analyse.sh --demarrer --arreter        # analyse SonarQube complète
+```
+
+Les acceptations de risque sont tracées dans [`.trivyignore.yaml`](.trivyignore.yaml) : chacune porte
+une justification et une **date d'expiration**. Le seuil bloquant reste à `HIGH` — **toute nouvelle
+vulnérabilité bloque le pipeline**.
 
 La **décision** de purge des sauvegardes est isolée dans une fonction pure, séparée de son
 **exécution**, et couverte par des tests de cas limites (rétention nulle, négative, non numérique,

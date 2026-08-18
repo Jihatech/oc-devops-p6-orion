@@ -202,7 +202,133 @@ cas indiscutable (`cd $1`), l'outil fonctionnait parfaitement. Leçon retenue et
 
 ## Phase 3 — DevSecOps
 
-*(à compléter)*
+**Période** : 18/08/2026
+**Livrables** : étape ④ du pipeline (2 jobs), `scan-securite.sh`, `sonar-analyse.sh`,
+`sonar-report.py`, `.trivyignore.yaml`, `docs/04-plan-tests.md`, `docs/05-plan-securite.md`,
+preuves dans `docs/captures/sonarqube/`
+
+### Décision n°1 — SonarQube : serveur en conteneur plutôt que SonarCloud
+
+La mission laisse le choix, à condition de le documenter. Les deux options ont été comparées sur
+cinq critères :
+
+| Critère | Serveur en conteneur *(retenu)* | SonarCloud |
+|---|---|---|
+| Dépendance externe | **Aucune** | Compte, organisation, projet à créer |
+| Secret à gérer | **Aucun** — jeton généré à l'exécution | `SONAR_TOKEN` à déposer et faire tourner |
+| Reproductibilité par un tiers | **Totale** — l'évaluateur relance le pipeline sans rien configurer | Impossible sans accès au compte |
+| Historique de tendance | ⚠️ Perdu avec le conteneur | Natif |
+| Décoration des Pull Requests | Non | Oui |
+
+**Motif du choix** : la reproductibilité sans dépendance ni secret. Une chaîne de sécurité ne doit
+pas elle-même reposer sur un compte externe dont l'évaluateur n'a pas la clé.
+
+> ⚠️ **Révision assumée d'une décision de phase 1.** Le document `02-veille-recommandations.md`
+> recommandait SonarCloud, précisément parce qu'il conserve l'historique. Ce point était juste, et
+> c'était le principal argument. Il est traité autrement plutôt qu'abandonné : `sonar-report.py`
+> interroge l'API **avant** la destruction du serveur et écrit une ligne datée, rattachée à un
+> commit, dans un `historique.csv` **versionné**. La tendance est donc conservée — et sous une forme
+> plus solide qu'une capture d'écran, puisqu'elle est comparable automatiquement et qu'une
+> modification apparaîtrait dans l'historique Git.
+
+### Décision n°2 — Acceptations de risque nommées plutôt que seuil abaissé
+
+Trivy a remonté **12 CVE HIGH** sur `@angular/core`, `@angular/common` et `@angular/compiler` en
+17.3.8. Pour **chacune**, la version corrigée la plus basse est **Angular 19.2** : aucun correctif
+n'existe en branche 17. Les traiter suppose une montée de deux versions majeures — une migration
+applicative, hors périmètre d'une mission d'industrialisation.
+
+Deux réponses possibles :
+
+| Option | Effet | Retenue |
+|---|---|---|
+| Abaisser le seuil bloquant de HIGH à CRITICAL | Rend le pipeline **aveugle à toute nouvelle vulnérabilité HIGH**, y compris corrigeable | ❌ |
+| Accepter **nommément** les 12 CVE dans `.trivyignore.yaml` | Le seuil reste à HIGH ; **toute nouvelle vulnérabilité HIGH bloque** | ✅ |
+
+Chaque acceptation porte une justification et une **date d'expiration** (30/11/2026). Aucune
+acceptation permanente n'est admise. C'est la différence entre *gérer* un risque et le *masquer*.
+
+### Décision n°3 — La porte npm audit porte sur les dépendances de production
+
+Une vulnérabilité d'un outil de construction (Angular CLI, Karma) n'est **jamais servie au
+navigateur**. Bloquer une livraison applicative sur un risque de chaîne de build est une erreur de
+catégorie. Le gate porte donc sur `npm audit --omit=dev` ; le reste est rapporté dans un second
+fichier et suivi.
+
+### Vulnérabilités effectivement corrigées
+
+**Dépendances** — `npm audit fix`, sans montée de version majeure :
+
+| | Avant | Après |
+|---|---|---|
+| Total | 88 | **53** (−40 %) |
+| Critiques (toutes) | 3 | **1** |
+| **Critiques (production)** | — | **0** |
+
+Corrigées : `shell-quote` (déni de service à complexité quadratique) et `websocket-driver`
+(contournement de limite de ressources). Restante : `tar` via `@angular/cli`, qui exige une montée
+majeure et ne concerne que la chaîne de build (risque R9).
+
+**Code** — les 4 défauts SonarQube, du plus grave au moins grave :
+
+| Règle | Sévérité | Nature |
+|---|---|---|
+| `java:S1186` | CRITICAL | Test `contextLoads()` **vide** — passait toujours sans rien vérifier |
+| `typescript:S7059` | CRITICAL | Appel asynchrone **dans un constructeur** |
+| `Web:S5256` | MAJOR | Tableau sans en-têtes `<th>` |
+| `Web:MouseEvent…` | MINOR | Clic porté par un `<span>`, inaccessible au clavier |
+
+Résultat mesuré : **bugs 2 → 0**, code smells 35 → 33, **note de fiabilité C → A**, avertissements
+ESLint 12 → 10. Preuves complètes dans `docs/captures/sonarqube/`.
+
+### Les 3 échecs de pipeline de la phase, et ce qu'ils ont produit
+
+| # | Échec | Cause réelle | Correction — et garde-fou |
+|---|---|---|---|
+| 1 | Job SonarQube rouge **alors que l'analyse avait réussi** (26 fichiers, rapport transmis) | Mon script dépendait entièrement de `.scannerwork/report-task.txt`, écrit par le **conteneur** du scanner : ni sa présence ni ses droits ne sont garantis | Clé de projet lue dans `sonar-project.properties` et transmise explicitement ; **repli** par interrogation de la file de traitement du projet si l'identifiant de tâche manque |
+| 2 | Job de lint rouge sur `npm ci` | J'avais appliqué `npm audit fix` avec `--legacy-peer-deps`, produisant un verrou que `npm ci` **refuse** d'installer | Verrou régénéré sans le drapeau, et **`npm ci` vérifié en local avant envoi** — la vérification qui manquait |
+| 3 | Job de sécurité rouge **au moment précis où il ne trouvait rien** | Sous `set -o pipefail`, un `grep` sans correspondance renvoie 1 : le comptage « 0 vulnérabilité » faisait échouer le script via `set -e` | Comptage isolé dans `compter_occurrences()`, **couverte par 4 tests bash_unit** dont un qui vérifie explicitement la survie sous `set -euo pipefail` |
+
+**Le 3ᵉ mérite d'être souligné** : le résultat recherché — *aucune vulnérabilité* — provoquait
+l'échec du contrôle. ShellCheck ne détecte pas cette classe d'erreur ; **seule l'exécution la
+révèle**. C'est un argument concret en faveur de l'automatisation, et la raison pour laquelle je
+teste les scripts d'exploitation au même titre que le code applicatif.
+
+### Constat honnête : 0 vulnérabilité et 0 security hotspot
+
+L'analyse n'en a détecté aucun. Ce n'est **pas** un défaut de configuration : les classes Java
+compilées étaient bien fournies à l'analyseur (sans elles, il n'aurait rien pu détecter — c'est
+d'ailleurs pourquoi le job compile avant d'analyser).
+
+L'explication tient à l'application : un CRUD sans authentification, sans cryptographie, sans appels
+sortants. Et surtout, **la faille réelle qu'elle porte — l'API REST sans authentification — est une
+absence de contrôle**, que l'analyse statique ne sait pas détecter : SonarQube signale du code
+dangereux, pas du code manquant. C'est documenté comme risque résiduel R1, le plus grave du projet.
+
+Je préfère le dire ainsi plutôt que de laisser croire à une couverture que l'outil n'apporte pas.
+
+### Résultat mesuré
+
+| Indicateur | Valeur |
+|---|---|
+| Exécution verte | [32091061723](https://github.com/Jihatech/oc-devops-p6-orion/actions/runs/32091061723) — **10/10 jobs** |
+| Contrôles de sécurité automatisés | **5** (SAST, dépendances ×2, secrets, configurations) — contre **0** avant |
+| Quality gate | ✅ OK |
+| Tests unitaires de scripts | **31** bash_unit (+4 de régression) |
+| Durée de l'analyse SonarQube | 2 min 21 s |
+
+### Usage de l'IA en phase 3
+
+| Usage | Nature |
+|---|---|
+| Rédaction des scripts, du workflow et des deux plans | **Assistée par IA**, sur des décisions que j'ai arrêtées et documentées ci-dessus |
+| Diagnostic des 3 échecs | **Mien** — lecture des journaux et des artefacts JSON réels |
+| Analyse des 12 CVE et de leurs versions correctives | **Mienne** — extraction depuis le rapport Trivy, vérification que la branche 17 n'a aucun correctif |
+| Vérification | **Exécution réelle** : 5 exécutions de pipeline, artefacts téléchargés et inspectés, `npm ci` et tests rejoués en local |
+
+**Point de méthode** : après l'incident n°2 (verrou npm cassé), j'ai systématisé la vérification
+locale de `npm ci` **avant** tout envoi. Corriger un défaut ne suffit pas ; il faut corriger ce qui
+a permis de ne pas le voir.
 
 ## Phase 4 — Conteneurisation, orchestration, release
 
