@@ -167,16 +167,37 @@
             </div>
           </div>
           <p class="control">
-            <button class="button is-primary is-large">
-              <span
-                class="has-text-weight-bold"
-                (click)="addSelectedOrganization()"
-                >+</span
-              >
+            <!--
+              Corrigé (P6) : le gestionnaire (click) était porté par le <span>
+              intérieur (règle SonarQube Web:MouseEventWithoutKeyboardEquivalentCheck).
+              Un <span> n'est ni focalisable ni activable au clavier : la
+              fonctionnalité était donc inaccessible sans souris. Le
+              gestionnaire est déplacé sur le <button>, nativement accessible
+              au clavier — plutôt que d'ajouter un gestionnaire clavier à un
+              élément qui n'aurait pas dû en porter.
+            -->
+            <button
+              class="button is-primary is-large"
+              type="button"
+              aria-label="Ajouter l'organisation sélectionnée"
+              (click)="addSelectedOrganization()"
+            >
+              <span class="has-text-weight-bold" aria-hidden="true">+</span>
             </button>
           </p>
         </div>
+        <!--
+          Corrigé (P6) : tableau sans en-têtes (règle SonarQube Web:S5256).
+          Sans <th>, un lecteur d'écran ne peut pas annoncer à quoi correspond
+          chaque cellule.
+        -->
         <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th scope="col">Organisation</th>
+              <th scope="col"><span class="is-sr-only">Actions</span></th>
+            </tr>
+          </thead>
           <tbody>
             <tr *ngFor="let org of organizations">
               <td>

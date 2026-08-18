@@ -30,10 +30,17 @@ export class PersonDetailsComponent implements OnInit {
   isNew: boolean = false;
 
   constructor(private route: ActivatedRoute, private personService: PersonService, private organizationService: OrganizationService, private router: Router) {
-    this.organizationService.fetchAll().then(orgs => this.organizations = orgs)
   }
 
   ngOnInit(): void {
+    // Corrigé (P6) : cet appel asynchrone était effectué dans le constructeur
+    // (règle SonarQube typescript:S7059, sévérité CRITICAL). Un constructeur
+    // doit se limiter à l'injection de dépendances : y déclencher une E/S rend
+    // le composant difficile à tester, empêche de maîtriser le moment du
+    // chargement, et peut résoudre la promesse avant que le composant ne soit
+    // initialisé. ngOnInit est le point d'entrée prévu par Angular.
+    this.organizationService.fetchAll().then(orgs => this.organizations = orgs)
+
     const routeParams = this.route.snapshot.paramMap;
     const personIdParam = routeParams.get('personId');
 
