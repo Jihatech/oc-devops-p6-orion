@@ -1,0 +1,27 @@
+# Environnement de DÉVELOPPEMENT — Minikube local.
+#
+# Particularité : les images ne sont pas tirées d'un registre. Elles sont
+# construites directement dans le démon Docker du cluster
+# (`eval $(minikube docker-env)`), d'où pullPolicy=Never — qui garantit aussi
+# qu'aucune image du registre ne vient masquer celle qu'on vient de construire.
+
+image:
+  registry: ""
+  repository: ""
+  pullPolicy: Never
+
+back:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 384Mi
+    limits:
+      cpu: 500m
+      memory: 768Mi
+
+front:
+  replicaCount: 1
+
+ingress:
+  enabled: false

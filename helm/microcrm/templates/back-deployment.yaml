@@ -1,0 +1,81 @@
+{{- if .Values.back.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "microcrm.fullname" . }}-{{ .Values.back.name }}
+  labels:
+    {{- include "microcrm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.back.name }}
+spec:
+  replicas: {{ .Values.back.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ .Values.back.name }}
+  strategy:
+    # Mise à jour progressive sans interruption : un nouveau pod devient prêt
+    # AVANT qu'un ancien ne soit retiré (maxUnavailable: 0). C'est ce qui rend
+    # un déploiement raté rattrapable, les anciens pods continuant de servir.
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        {{- include "microcrm.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ .Values.back.name }}
+      annotations:
+        orion.io/version: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
+    spec:
+      securityContext:
+        fsGroup: {{ .Values.back.securityContext.runAsGroup }}
+      containers:
+        - name: {{ .Values.back.name }}
+          image: {{ include "microcrm.image" (dict "root" $ "composant" .Values.back) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.back.port }}
+          securityContext:
+            {{- toYaml .Values.back.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.back.resources | nindent 12 }}
+          # startupProbe : laisse à la JVM le temps de démarrer. Sans elle, la
+          # sonde de vivacité tuerait le pod avant la fin de l'initialisation
+          # Spring, provoquant une boucle de redémarrage sans cause apparente.
+          startupProbe:
+            httpGet:
+              path: {{ .Values.back.probes.startup.path }}
+              port: http
+            periodSeconds: {{ .Values.back.probes.startup.periodSeconds }}
+            failureThreshold: {{ .Values.back.probes.startup.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.back.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.back.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.back.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.back.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.back.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.back.probes.liveness.periodSeconds }}
+          {{- if .Values.secrets.enabled }}
+          envFrom:
+            - secretRef:
+                name: {{ include "microcrm.fullname" . }}-secrets
+          {{- end }}
+          {{- if .Values.back.persistence.enabled }}
+          volumeMounts:
+            - name: donnees
+              mountPath: {{ .Values.back.persistence.mountPath }}
+          {{- end }}
+      {{- if .Values.back.persistence.enabled }}
+      volumes:
+        - name: donnees
+          persistentVolumeClaim:
+            claimName: {{ include "microcrm.fullname" . }}-{{ .Values.back.name }}
+      {{- end }}
+{{- end }}

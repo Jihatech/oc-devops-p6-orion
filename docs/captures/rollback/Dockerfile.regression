@@ -1,0 +1,20 @@
+# Image VOLONTAIREMENT DÉFECTUEUSE — démonstration de rollback
+#
+# Simule une régression réaliste : l'artefact livré est corrompu, l'application
+# ne démarre donc pas. La sonde de démarrage (startupProbe) ne passe jamais, le
+# pod n'atteint jamais l'état « prêt », et `helm upgrade --wait` échoue.
+#
+# Ce cas a été préféré à un simple mauvais tag d'image (ImagePullBackOff) parce
+# qu'il est plus proche d'un incident réel : l'image existe, elle est tirée
+# avec succès, le conteneur démarre — et c'est l'APPLICATION qui échoue. C'est
+# précisément le scénario que les sondes doivent détecter.
+#
+# Construction (dans le démon Docker de Minikube) :
+#   docker build -f docs/captures/rollback/Dockerfile.regression \
+#       -t orion-microcrm-back:1.1.0 .
+
+FROM orion-microcrm-back:1.0.0
+
+USER 0
+RUN printf 'regression simulee : artefact corrompu\n' > /app/application.jar
+USER 10001:10001

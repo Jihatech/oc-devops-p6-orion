@@ -1,0 +1,132 @@
+# =============================================================================
+# Valeurs par défaut du chart MicroCRM
+# =============================================================================
+# Ces valeurs constituent le socle commun. Chaque environnement les surcharge
+# via values-<env>.yaml : voir values-dev.yaml et values-staging.yaml.
+# =============================================================================
+
+# Registre des images. La CI publie sur GHCR ; en développement local sur
+# Minikube, on utilise les images construites dans le démon Docker du cluster.
+image:
+  registry: ghcr.io
+  repository: jihatech/oc-devops-p6-orion
+  # Tag par défaut volontairement absent : il DOIT être fourni explicitement
+  # (--set image.tag=...). Déployer un tag implicite comme « latest »
+  # reproduirait la faiblesse f4 de l'audit — l'impossibilité de savoir quelle
+  # version tourne réellement.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# --- Composant backend (Spring Boot) ----------------------------------------
+back:
+  enabled: true
+  name: back
+  replicaCount: 1
+  port: 8080
+  image:
+    name: orion-microcrm-back
+
+  # Correspond à l'UID déclaré dans app/back/Dockerfile. Un écart entre les
+  # deux empêche le conteneur de démarrer.
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: ["ALL"]
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # Trois sondes distinctes, aux rôles différents :
+  #  - startup   : laisse à la JVM le temps de démarrer sans que liveness ne la tue
+  #  - readiness : retire le pod du service tant qu'il ne peut pas répondre
+  #  - liveness  : redémarre le pod s'il cesse de répondre
+  # Sans startupProbe, une JVM lente au démarrage est tuée en boucle par la
+  # liveness — le défaut classique d'un premier déploiement Spring Boot.
+  probes:
+    startup:
+      path: /
+      periodSeconds: 5
+      failureThreshold: 30
+    readiness:
+      path: /
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    liveness:
+      path: /
+      initialDelaySeconds: 30
+      periodSeconds: 20
+
+  # Persistance désactivée par défaut : l'application utilise HSQLDB EN MÉMOIRE
+  # (constat A1 de l'audit). Un volume n'aurait rien à persister aujourd'hui.
+  # Le gabarit existe pour être activé le jour de la migration vers PostgreSQL,
+  # qui est la recommandation n°1 du rapport de performance.
+  persistence:
+    enabled: false
+    size: 1Gi
+    storageClass: standard
+    mountPath: /data
+
+# --- Composant frontend (Angular + nginx) -----------------------------------
+front:
+  enabled: true
+  name: front
+  replicaCount: 1
+  port: 8080
+  image:
+    name: orion-microcrm-front
+
+  # UID 101 : celui de l'image nginx-unprivileged.
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: ["ALL"]
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  probes:
+    readiness:
+      path: /healthz
+      initialDelaySeconds: 3
+      periodSeconds: 10
+    liveness:
+      path: /healthz
+      initialDelaySeconds: 10
+      periodSeconds: 20
+
+service:
+  type: ClusterIP
+
+# Ingress désactivé par défaut : sur Minikube, l'accès se fait par
+# `kubectl port-forward`, ce qui évite d'exiger l'addon ingress.
+ingress:
+  enabled: false
+  className: nginx
+  host: microcrm.local
+
+# Secrets applicatifs. Vide aujourd'hui : HSQLDB en mémoire ne demande aucun
+# credential. La structure est en place pour la migration PostgreSQL, où le
+# mot de passe sera porté par un Secret par namespace — jamais par values.yaml.
+secrets:
+  enabled: false
+  # Les CLÉS sont déclarées ici, les VALEURS proviennent de --set ou d'un
+  # gestionnaire de secrets. Aucune valeur sensible n'est versionnée.
+  keys: []

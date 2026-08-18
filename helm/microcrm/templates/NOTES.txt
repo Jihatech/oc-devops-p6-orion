@@ -1,0 +1,21 @@
+MicroCRM déployé — release « {{ .Release.Name }} » dans le namespace « {{ .Release.Namespace }} ».
+
+Version applicative : {{ .Values.image.tag | default .Chart.AppVersion }}
+Révision Helm       : {{ .Release.Revision }}
+
+Accès à l'application :
+
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "microcrm.fullname" . }}-{{ .Values.front.name }} 8081:{{ .Values.front.port }}
+
+  puis ouvrir http://localhost:8081
+  (le frontend relaie /api vers le backend : aucun port supplémentaire à exposer)
+
+Vérifier l'état du déploiement :
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+  helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+Revenir à la version précédente en cas de problème :
+
+  helm rollback {{ .Release.Name }} -n {{ .Release.Namespace }}
+  ./scripts/rollback.sh --release {{ .Release.Name }} --namespace {{ .Release.Namespace }}

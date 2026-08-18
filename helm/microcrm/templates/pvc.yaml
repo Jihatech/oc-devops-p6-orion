@@ -1,0 +1,27 @@
+{{- if and .Values.back.enabled .Values.back.persistence.enabled }}
+{{/*
+Volume persistant du backend.
+
+Désactivé par défaut, et c'est délibéré : l'application utilise HSQLDB EN
+MÉMOIRE (constat A1 de l'audit). Provisionner un volume aujourd'hui donnerait
+l'illusion d'une persistance qui n'existe pas — les données disparaissent au
+redémarrage du pod quoi qu'il arrive.
+
+Le gabarit est prêt pour la migration vers PostgreSQL, recommandation n°1 du
+rapport de performance. Il s'activera alors par persistence.enabled=true.
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "microcrm.fullname" . }}-{{ .Values.back.name }}
+  labels:
+    {{- include "microcrm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.back.name }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.back.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.back.persistence.size }}
+{{- end }}

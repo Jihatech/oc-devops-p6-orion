@@ -1,0 +1,39 @@
+{{- if .Values.back.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "microcrm.fullname" . }}-{{ .Values.back.name }}
+  labels:
+    {{- include "microcrm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.back.name }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.back.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: {{ .Values.back.name }}
+{{- end }}
+---
+{{- if .Values.front.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "microcrm.fullname" . }}-{{ .Values.front.name }}
+  labels:
+    {{- include "microcrm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.front.name }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.front.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: {{ .Values.front.name }}
+{{- end }}

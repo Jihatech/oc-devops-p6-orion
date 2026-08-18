@@ -1,0 +1,27 @@
+# Environnement de RECETTE (staging).
+#
+# Les images proviennent de GHCR et sont désignées par un tag immuable fourni
+# par la CI. Deux répliques par composant : cela permet de vérifier que la
+# mise à jour progressive (rolling update) fonctionne réellement, ce qu'une
+# réplique unique ne démontre pas.
+
+image:
+  registry: ghcr.io
+  repository: jihatech/oc-devops-p6-orion
+  pullPolicy: IfNotPresent
+
+back:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+front:
+  replicaCount: 2
+
+ingress:
+  enabled: false

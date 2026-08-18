@@ -1,0 +1,57 @@
+{{- if .Values.front.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "microcrm.fullname" . }}-{{ .Values.front.name }}
+  labels:
+    {{- include "microcrm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.front.name }}
+spec:
+  replicas: {{ .Values.front.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ .Values.front.name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        {{- include "microcrm.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ .Values.front.name }}
+      annotations:
+        orion.io/version: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
+    spec:
+      containers:
+        - name: {{ .Values.front.name }}
+          image: {{ include "microcrm.image" (dict "root" $ "composant" .Values.front) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.front.port }}
+          env:
+            # Adresse du backend injectée au démarrage : c'est ce qui permet à
+            # la MÊME image de servir tous les environnements sans être
+            # reconstruite (principe « construire une fois, déployer partout »).
+            - name: BACKEND_URL
+              value: http://{{ include "microcrm.fullname" . }}-{{ .Values.back.name }}:{{ .Values.back.port }}
+          securityContext:
+            {{- toYaml .Values.front.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.front.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.front.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.front.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.front.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.front.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.front.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.front.probes.liveness.periodSeconds }}
+{{- end }}

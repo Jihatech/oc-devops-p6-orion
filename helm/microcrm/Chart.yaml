@@ -1,0 +1,19 @@
+apiVersion: v2
+name: microcrm
+description: >-
+  Chart de déploiement de l'application MicroCRM d'Orion : frontend Angular
+  servi par nginx et backend Spring Boot, déployés comme deux composants
+  indépendants.
+type: application
+
+# Version du chart — incrémentée à chaque modification des manifestes.
+version: 0.1.0
+
+# Version applicative par défaut. Elle est surchargée à chaque déploiement par
+# le tag d'image produit par la CI (--set image.tag=sha-xxxxxxx), afin qu'une
+# release Helm désigne toujours un artefact immuable et identifiable.
+appVersion: "0.1.0"
+
+keywords: [orion, microcrm, devops, openclassrooms]
+maintainers:
+  - name: Ilyasse JAIEL
