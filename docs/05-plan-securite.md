@@ -157,7 +157,7 @@ d'audit et suivies**, sans bloquer.
 
 | | Avant | Après `npm audit fix` | Écart |
 |---|---|---|---|
-| Total des vulnérabilités | 88 | **52** | **−41 %** |
+| Total des vulnérabilités | 88 | **53** | **−40 %** |
 | Critiques (toutes dépendances) | 3 | **1** | −2 |
 | **Critiques (production)** | — | **0** | ✅ |
 | Élevées (production) | — | 8 | *cf. acceptations* |
