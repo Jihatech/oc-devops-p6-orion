@@ -1,0 +1,127 @@
+---
+# =============================================================================
+# deploiement.yml — Déploiement de MicroCRM sur Kubernetes
+# =============================================================================
+#
+# BUT
+#   Enchaîner de bout en bout la construction des images, leur analyse de
+#   sécurité, le déploiement Helm et la vérification du service. Remplace la
+#   séquence manuelle que l'équipe Ops exécute aujourd'hui à la main
+#   (goulot G3 de l'audit : 2 personnes, non rejouable, non traçable).
+#
+# FONCTIONNEMENT
+#   1. Construit les images dans le démon Docker du cluster Minikube, ce qui
+#      évite tout passage par un registre en développement.
+#   2. Analyse les images avec Trivy AVANT déploiement — même principe que
+#      dans la CI : ce qui n'est pas sain n'est pas déployé.
+#   3. Déploie via Helm en attendant la disponibilité réelle (`--wait`).
+#   4. Relève l'état des pods obtenus.
+#
+#   Le playbook appelle les MÊMES outils et scripts que le pipeline : un
+#   déploiement lancé par Ansible se comporte exactement comme celui de la CI.
+#   C'est la même exigence de parité que celle appliquée entre poste et CI.
+#
+# PARAMÈTRES (variables surchargeables par -e)
+#   version           tag d'image à déployer                   (REQUIS)
+#   environnement     dev | staging                            (défaut : dev)
+#   namespace_cible   namespace visé        (défaut : déduit de l'environnement)
+#   construire        true/false — construire les images        (défaut : true)
+#   scanner           true/false — analyser avant déploiement   (défaut : true)
+#
+# CONDITIONS D'EXÉCUTION
+#   ansible-playbook deploiement.yml -e version=1.0.0
+#   ansible-playbook deploiement.yml -e version=1.2.0 -e environnement=staging
+#
+#   Prérequis vérifiés par prerequis.yml. Aucun privilège root.
+#   Aucun secret manipulé : les credentials éventuels passent par des Secrets
+#   Kubernetes, jamais par des variables de playbook.
+# =============================================================================
+
+- name: Déployer MicroCRM
+  hosts: local
+  gather_facts: false
+
+  vars:
+    environnement: dev
+    construire: true
+    scanner: true
+    # « namespace » est un nom RESERVE par Ansible (ansible-lint
+    # var-naming[no-reserved]) : la variable est donc suffixee.
+    namespace_cible: "orion-{{ environnement }}"
+    release: microcrm
+
+  pre_tasks:
+    - name: Exiger un tag de version explicite
+      ansible.builtin.assert:
+        that:
+          - version is defined
+          - version | length > 0
+        fail_msg: >-
+          La variable « version » est obligatoire :
+          ansible-playbook deploiement.yml -e version=1.0.0
+          Déployer un tag implicite rendrait impossible de savoir quelle
+          version tourne (faiblesse f4 de l'audit) et priverait le rollback
+          de toute cible fiable.
+
+    - name: Vérifier que l'environnement est reconnu
+      ansible.builtin.assert:
+        that: environnement in ['dev', 'staging']
+        fail_msg: "environnement invalide : {{ environnement }} (attendu : dev ou staging)"
+
+  tasks:
+    - name: Construire les images dans le démon Docker de Minikube
+      ansible.builtin.shell:
+        cmd: >-
+          eval $(minikube -p minikube docker-env --shell bash) &&
+          docker build -f app/{{ item }}/Dockerfile
+          -t orion-microcrm-{{ item }}:{{ version }} app/
+        chdir: "{{ projet_racine }}"
+        executable: /bin/bash
+      loop: [back, front]
+      when: construire | bool
+      changed_when: true
+
+    - name: Analyser les images avant déploiement
+      ansible.builtin.shell:
+        cmd: >-
+          eval $(minikube -p minikube docker-env --shell bash) &&
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed
+          --no-progress --exit-code 1 orion-microcrm-{{ item }}:{{ version }}
+        chdir: "{{ projet_racine }}"
+        executable: /bin/bash
+      loop: [back, front]
+      when: scanner | bool
+      changed_when: false
+
+    - name: Déployer la release Helm
+      ansible.builtin.command:
+        cmd: >-
+          helm upgrade --install {{ release }} helm/microcrm
+          --namespace {{ namespace_cible }}
+          --values helm/microcrm/values-{{ environnement }}.yaml
+          --set image.tag={{ version }}
+          --wait --timeout 300s
+        chdir: "{{ projet_racine }}"
+      register: deploiement
+      changed_when: "'STATUS: deployed' in deploiement.stdout"
+
+    - name: Relever l'état des pods
+      ansible.builtin.command:
+        cmd: >-
+          kubectl get pods -n {{ namespace_cible }}
+          -l app.kubernetes.io/instance={{ release }}
+          -o custom-columns=NOM:.metadata.name,PRET:.status.containerStatuses[0].ready,IMAGE:.spec.containers[0].image
+          --no-headers
+      register: etat_pods
+      changed_when: false
+
+    - name: Afficher le résultat
+      ansible.builtin.debug:
+        msg: "{{ ['Release ' + release + ' version ' + version + ' dans ' + namespace_cible, ''] + etat_pods.stdout_lines }}"
+
+  post_tasks:
+    - name: Rappeler la procédure de retour arrière
+      ansible.builtin.debug:
+        msg: >-
+          En cas de problème :
+          ./scripts/rollback.sh --release {{ release }} --namespace {{ namespace_cible }}

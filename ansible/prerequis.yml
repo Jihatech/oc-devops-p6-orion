@@ -1,0 +1,92 @@
+---
+# =============================================================================
+# prerequis.yml — Vérification de la chaîne d'outils
+# =============================================================================
+#
+# BUT
+#   Vérifier, AVANT toute opération, que la machine dispose des outils
+#   nécessaires et que les services requis répondent. Une opération de
+#   déploiement qui échoue à mi-parcours faute d'un outil manquant laisse le
+#   système dans un état intermédiaire : mieux vaut refuser de commencer.
+#
+# FONCTIONNEMENT
+#   Contrôle successivement la présence des binaires, l'état du démon Docker
+#   et la disponibilité du cluster Kubernetes. Chaque manque est rapporté avec
+#   la commande d'installation correspondante.
+#
+# PARAMÈTRES (variables surchargeables)
+#   namespace_dev        namespace applicatif à vérifier (défaut : orion-dev)
+#
+# CONDITIONS D'EXÉCUTION
+#   ansible-playbook prerequis.yml
+#   Aucun privilège root. Aucune modification : ce playbook ne fait que LIRE.
+# =============================================================================
+
+- name: Vérifier les prérequis de la chaîne DevOps
+  hosts: local
+  gather_facts: false
+
+  vars:
+    outils_requis:
+      - { nom: docker, aide: "https://docs.docker.com/get-docker/" }
+      - { nom: kubectl, aide: "https://kubernetes.io/docs/tasks/tools/" }
+      - { nom: helm, aide: "https://helm.sh/docs/intro/install/" }
+      - { nom: minikube, aide: "https://minikube.sigs.k8s.io/docs/start/" }
+      - { nom: terraform, aide: "https://developer.hashicorp.com/terraform/install" }
+
+  tasks:
+    - name: Rechercher chaque outil dans le PATH
+      ansible.builtin.command: "which {{ item.nom }}"
+      register: recherche_outils
+      changed_when: false
+      failed_when: false
+      loop: "{{ outils_requis }}"
+      loop_control:
+        label: "{{ item.nom }}"
+
+    - name: Signaler les outils manquants
+      ansible.builtin.fail:
+        msg: >-
+          Outils manquants : {{ manquants | map(attribute='item.nom') | join(', ') }}.
+          Installation : {{ manquants | map(attribute='item.aide') | join(' | ') }}
+      vars:
+        manquants: "{{ recherche_outils.results | selectattr('rc', 'ne', 0) | list }}"
+      when: manquants | length > 0
+
+    - name: Vérifier que le démon Docker répond
+      ansible.builtin.command: docker info
+      register: etat_docker
+      changed_when: false
+      failed_when: etat_docker.rc != 0
+
+    - name: Vérifier que le cluster Kubernetes est joignable
+      ansible.builtin.command: kubectl cluster-info
+      register: etat_cluster
+      changed_when: false
+      failed_when: false
+
+    - name: Signaler un cluster indisponible
+      ansible.builtin.fail:
+        msg: "Cluster Kubernetes injoignable. Démarrez-le : minikube start --driver=docker --cpus=2 --memory=3g"
+      when: etat_cluster.rc != 0
+
+    - name: Vérifier la présence du namespace applicatif
+      ansible.builtin.command: "kubectl get namespace {{ namespace_dev }}"
+      register: etat_namespace
+      changed_when: false
+      failed_when: false
+
+    - name: Signaler un namespace absent
+      ansible.builtin.debug:
+        msg: >-
+          Le namespace {{ namespace_dev }} n'existe pas encore.
+          Il est provisionné par Terraform : terraform -chdir=terraform apply
+      when: etat_namespace.rc != 0
+
+    - name: Récapitulatif
+      ansible.builtin.debug:
+        msg:
+          - "Outils          : tous présents"
+          - "Démon Docker    : opérationnel"
+          - "Cluster K8s     : joignable"
+          - "Namespace {{ namespace_dev }} : {{ 'présent' if etat_namespace.rc == 0 else 'ABSENT' }}"

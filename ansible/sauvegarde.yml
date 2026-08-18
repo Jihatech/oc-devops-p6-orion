@@ -1,0 +1,111 @@
+---
+# =============================================================================
+# sauvegarde.yml — Sauvegarde et restauration vérifiées
+# =============================================================================
+#
+# BUT
+#   Automatiser la sauvegarde des artefacts et configurations, et — surtout —
+#   vérifier qu'elle est RESTAURABLE. Répond à la faiblesse f8 de l'audit :
+#   Orion ne dispose aujourd'hui d'aucune sauvegarde ni procédure de reprise.
+#
+#   Une sauvegarde qui n'a jamais été restaurée n'est pas une sauvegarde :
+#   c'est une hypothèse. Ce playbook enchaîne donc systématiquement les deux.
+#
+# FONCTIONNEMENT
+#   1. Appelle scripts/backup.sh, qui produit une archive horodatée, son
+#      empreinte SHA-256 et un manifeste JSON, puis purge selon la rétention.
+#   2. Vérifie la présence des fichiers annexes (empreinte, manifeste).
+#   3. Restaure l'archive dans un répertoire temporaire.
+#   4. Compare le contenu restauré à la source (`diff -r`).
+#   5. Nettoie le répertoire temporaire.
+#
+#   L'étape 4 est le cœur du playbook. Sans elle, on automatiserait la
+#   production d'archives sans jamais savoir si elles valent quelque chose.
+#
+# PARAMÈTRES (variables surchargeables par -e)
+#   destination     répertoire des archives            (défaut : backups)
+#   retention       nombre d'archives conservées       (défaut : 7)
+#   verifier        true/false — cycle de restauration (défaut : true)
+#
+# CONDITIONS D'EXÉCUTION
+#   ansible-playbook sauvegarde.yml
+#   ansible-playbook sauvegarde.yml -e retention=14 -e destination=/var/backups/microcrm
+#
+#   Convient à une exécution planifiée (cron, tâche CI programmée).
+#   Aucun privilège root si le répertoire de destination est accessible.
+#   Aucun secret manipulé : backup.sh exclut explicitement les chemins
+#   sensibles (.env, *.key, *.pem, kubeconfig) de l'archive.
+# =============================================================================
+
+- name: Sauvegarder et vérifier la restauration
+  hosts: local
+  gather_facts: false
+
+  vars:
+    destination: backups
+    retention: 7
+    verifier: true
+    repertoire_verification: /tmp/orion-verification-restauration
+
+  tasks:
+    - name: Produire la sauvegarde
+      ansible.builtin.command:
+        cmd: "./scripts/backup.sh --destination {{ destination }} --retention {{ retention }}"
+        chdir: "{{ projet_racine }}"
+      register: sauvegarde
+      changed_when: true
+      environment:
+        ORION_COULEUR: "0"
+
+    - name: Identifier l'archive produite
+      ansible.builtin.shell:
+        # pipefail : sans lui, l'échec de `ls` serait masqué par le succès de
+        # `head`, et la tâche renverrait une chaîne vide sans erreur.
+        cmd: "set -o pipefail && ls -t {{ destination }}/microcrm_*.tar.gz | head -1"
+        chdir: "{{ projet_racine }}"
+        executable: /bin/bash
+      register: archive
+      changed_when: false
+
+    - name: Vérifier la présence de l'empreinte et du manifeste
+      ansible.builtin.stat:
+        path: "{{ projet_racine }}/{{ archive.stdout }}{{ item }}"
+      register: fichiers_annexes
+      loop: [".sha256", ".json"]
+      failed_when: not fichiers_annexes.stat.exists
+
+    - name: Restaurer l'archive dans un répertoire temporaire
+      ansible.builtin.command:
+        cmd: >-
+          ./scripts/backup.sh --mode restauration
+          --archive {{ archive.stdout }}
+          --cible {{ repertoire_verification }}
+          --forcer
+        chdir: "{{ projet_racine }}"
+      when: verifier | bool
+      changed_when: true
+      environment:
+        ORION_COULEUR: "0"
+
+    - name: Comparer le contenu restauré à la source
+      ansible.builtin.command:
+        cmd: "diff -r docs {{ repertoire_verification }}/docs"
+        chdir: "{{ projet_racine }}"
+      when: verifier | bool
+      register: comparaison
+      changed_when: false
+
+    - name: Nettoyer le répertoire de vérification
+      ansible.builtin.file:
+        path: "{{ repertoire_verification }}"
+        state: absent
+      when: verifier | bool
+
+    - name: Afficher le résultat
+      ansible.builtin.debug:
+        msg:
+          - "Archive      : {{ archive.stdout }}"
+          - "Empreinte    : présente"
+          - "Manifeste    : présent"
+          - "Restauration : {{ 'vérifiée, contenu identique' if verifier | bool else 'non vérifiée' }}"
+          - "Rétention    : {{ retention }} archives conservées"

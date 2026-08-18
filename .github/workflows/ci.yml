@@ -143,7 +143,7 @@ jobs:
           exit $manquants
 
   lint-manifestes:
-    name: "① Lint · charts Helm"
+    name: "① Lint · charts Helm et IaC"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -183,6 +183,46 @@ jobs:
             exit 1
           fi
           echo "Garde-fou confirmé : le rendu échoue sans image.tag explicite."
+
+      - name: Installer Terraform (version épinglée)
+        uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: 1.15.6
+          terraform_wrapper: false
+
+      - name: Vérifier le formatage Terraform
+        run: terraform -chdir=terraform fmt -check -recursive -diff
+
+      # `-backend=false` : la validation ne nécessite ni état distant ni
+      # accès au cluster. Elle porte sur la cohérence du code, pas sur
+      # l'infrastructure existante.
+      - name: Valider la configuration Terraform
+        run: |
+          terraform -chdir=terraform init -backend=false -input=false
+          terraform -chdir=terraform validate
+
+      # `terraform plan` n'est délibérément PAS exécuté ici : il exige un
+      # accès au cluster Kubernetes, absent du runner. C'est une conséquence
+      # assumée du choix Minikube local (docs/02, §5) — le plan et l'apply
+      # sont exécutés par l'opérateur sur sa machine, et tracés dans
+      # docs/captures/iac/.
+      - name: Rappeler la portée de la validation Terraform
+        run: |
+          echo "Formatage et cohérence validés. Le plan exige un cluster :"
+          echo "  terraform -chdir=terraform plan"
+
+      - name: Vérifier les playbooks Ansible
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --disable-pip-version-check             "ansible-core==2.18.*" "ansible-lint==25.*"
+          cd ansible
+          for playbook in prerequis.yml deploiement.yml sauvegarde.yml; do
+            echo "::group::$playbook"
+            ansible-playbook --syntax-check "$playbook"
+            echo "::endgroup::"
+          done
+          # Profil « production » : le plus strict des profils ansible-lint.
+          ansible-lint --profile production prerequis.yml deploiement.yml sauvegarde.yml
 
       - name: Valider les manifestes contre le schéma Kubernetes
         run: |

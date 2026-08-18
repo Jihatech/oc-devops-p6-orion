@@ -1,0 +1,52 @@
+===== TERRAFORM — provisionnement des environnements =====
+Date : 2026-08-18T19:30:46Z
+
+--- Ressources gerees ---
+module.environnements["dev"].kubernetes_limit_range.limites
+module.environnements["dev"].kubernetes_namespace.environnement
+module.environnements["dev"].kubernetes_network_policy.isolation
+module.environnements["dev"].kubernetes_resource_quota.quota
+module.environnements["staging"].kubernetes_limit_range.limites
+module.environnements["staging"].kubernetes_namespace.environnement
+module.environnements["staging"].kubernetes_network_policy.isolation
+module.environnements["staging"].kubernetes_resource_quota.quota
+
+--- Etat reel dans le cluster ---
+orion-dev       dev
+orion-staging   staging
+
+  dev      resourcequota/quota-dev   pods: 2/10, requests.cpu: 150m/1, requests.memory: 448Mi/1Gi   limits.cpu: 1/2, limits.memory: 1Gi/2Gi   16s
+  dev      limitrange/limites-defaut-dev   2026-08-18T19:30:07Z
+  dev      networkpolicy.networking.k8s.io/isolation-dev   <none>   16s
+  staging  resourcequota/quota-staging   pods: 0/15, requests.cpu: 0/1, requests.memory: 0/1500Mi   limits.cpu: 0/2, limits.memory: 0/3Gi   16s
+  staging  limitrange/limites-defaut-staging   2026-08-18T19:30:07Z
+  staging  networkpolicy.networking.k8s.io/isolation-staging   <none>   16s
+
+--- Quotas appliques (orion-dev) ---
+map[limits.cpu:2 limits.memory:2Gi pods:10 requests.cpu:1 requests.memory:1Gi]
+
+--- Idempotence : un second plan ne doit rien proposer ---
+No changes. Your infrastructure matches the configuration.
+
+===== ANSIBLE — validation des playbooks =====
+Exécutée dans le conteneur willhallonline/ansible (ansible-core 2.21.0).
+
+--- Syntaxe ---
+prerequis.yml        OK
+deploiement.yml      OK
+sauvegarde.yml       OK
+
+--- ansible-lint (profil production, le plus strict) ---
+Premier passage : 2 violations
+  var-naming[no-reserved]  « namespace » est un nom réservé par Ansible   (deploiement.yml:48)
+  risky-shell-pipe         un shell avec pipe doit activer pipefail       (sauvegarde.yml:60)
+
+Après correction :
+  Passed: 0 failure(s), 0 warning(s) in 3 files processed.
+  Last profile that met the validation criteria was 'production'.
+
+--- Défaut supplémentaire trouvé à la relecture (invisible pour le lint) ---
+Le renommage de « namespace » en « namespace_cible » avait laissé une
+référence dans une expression Jinja (deploiement.yml:120), qui aurait
+provoqué une erreur de variable indéfinie À L'EXÉCUTION. ansible-lint ne
+détecte pas ce cas : seule la relecture, ou un lancement réel, le révèle.
