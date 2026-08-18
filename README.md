@@ -4,18 +4,115 @@
 > Industrialisation complète de la chaîne CI/CD de l'application Full-Stack **MicroCRM** d'Orion.
 > Auteur : **Ilyasse JAIEL**
 
+[![CI](https://github.com/Jihatech/oc-devops-p6-orion/actions/workflows/ci.yml/badge.svg)](https://github.com/Jihatech/oc-devops-p6-orion/actions/workflows/ci.yml)
+
 ---
 
-## État d'avancement
+## En une page
 
-| Phase | Contenu | Statut |
+Orion disposait d'une chaîne qui **vérifiait le code mais ne livrait rien** : les images Docker,
+seul artefact réel, étaient construites, contrôlées et déployées à la main par deux personnes. Une
+vulnérabilité détectée trop tard avait déjà retardé un déploiement.
+
+Le projet transforme cette chaîne en un dispositif qui **produit, contrôle, publie, déploie et sait
+revenir en arrière**.
+
+| Indicateur | Avant | Après |
 |---|---|---|
-| 1 | Audit, veille, normalisation du pipeline | ✅ **Terminée** |
-| 2 | Pipeline CI + scripts d'automatisation | ✅ **Terminée** — [pipeline vert](https://github.com/Jihatech/oc-devops-p6-orion/actions) |
-| 3 | DevSecOps — SonarQube, Trivy, plans de tests et de sécurité | ✅ **Terminée** |
-| 4 | Conteneurisation, Kubernetes + Helm, releases et rollback | ✅ **Terminée** |
-| 5 | Terraform, Ansible, ELK, métriques DORA | ✅ **Terminée** |
-| 6 | Consolidation des livrables finaux | ⏳ À venir |
+| Contrôles de sécurité automatisés | 0 | **5** |
+| Délai de détection d'une vulnérabilité | Plusieurs jours | **Quelques minutes** |
+| Vulnérabilités dans les images livrées | 86 | **0** |
+| Retour à la version précédente | Impossible | **18 s, sans interruption** |
+| Versions livrées identifiables | Non | **5 releases tracées** |
+
+---
+
+## Démarrage rapide
+
+> Objectif : cloner, tout relancer, sans rien demander à personne.
+
+### Prérequis
+
+| Outil | Version validée |
+|---|---|
+| Docker | 28.5.1 |
+| Minikube | 1.38.1 |
+| kubectl | 1.34.1 |
+| Helm | 4.2.3 |
+| Terraform | 1.15.6 |
+| Node.js / npm | 20.19 (CI) — 25.2 (poste) |
+| Java (JDK) | 17 |
+| Python | 3.11 |
+
+Vérification automatique de la chaîne d'outils :
+
+```bash
+ansible-playbook ansible/prerequis.yml
+```
+
+### 1. Tests et qualité, sans cluster
+
+```bash
+./scripts/install-deps.sh                    # dépendances des deux composants
+./scripts/run-tests.sh --sortie reports      # tests + couverture
+bash_unit scripts/tests/test_commun.sh       # 31 tests des scripts
+./scripts/scan-securite.sh                   # dépendances, secrets, configurations
+```
+
+### 2. Analyse SonarQube complète
+
+```bash
+./scripts/sonar-analyse.sh --demarrer --arreter
+```
+
+Serveur démarré en conteneur, analysé, puis détruit. Aucun compte, aucun secret : les preuves
+d'analyse sont écrites dans [`docs/captures/sonarqube/`](docs/captures/sonarqube/).
+
+### 3. Déploiement sur Kubernetes
+
+```bash
+# Cluster local et images
+minikube start --driver=docker --cpus=2 --memory=3g
+eval $(minikube -p minikube docker-env --shell bash)
+docker build -f app/back/Dockerfile  -t orion-microcrm-back:1.3.0  app/
+docker build -f app/front/Dockerfile -t orion-microcrm-front:1.3.0 app/
+
+# Environnements provisionnés par Terraform (namespaces, quotas, politiques réseau)
+terraform -chdir=terraform init
+terraform -chdir=terraform apply
+
+# Déploiement — le tag d'image est OBLIGATOIRE, le chart refuse un tag implicite
+helm upgrade --install microcrm helm/microcrm -n orion-dev \
+    -f helm/microcrm/values-dev.yaml --set image.tag=1.3.0 --wait
+
+# Accès
+kubectl port-forward -n orion-dev svc/microcrm-front 8081:8080
+#   → http://localhost:8081   (le frontend relaie /api vers le backend)
+```
+
+### 4. Retour arrière vérifié
+
+```bash
+./scripts/rollback.sh --release microcrm --namespace orion-dev
+```
+
+### 5. Observabilité
+
+```bash
+docker compose -f elk/docker-compose.yml up -d     # Elasticsearch, Kibana, Filebeat
+kubectl apply -f elk/k8s/filebeat-daemonset.yaml    # journaux des pods
+./scripts/elk-setup.sh                              # vues, tableaux de bord, alertes
+#   → http://localhost:5601/app/dashboards
+```
+
+### 6. Indicateurs DORA
+
+```bash
+export GITHUB_TOKEN=$(gh auth token)
+python3 scripts/dora-metrics.py --depot Jihatech/oc-devops-p6-orion
+```
+
+---
 
 ## L'application industrialisée
 
@@ -23,210 +120,142 @@
 
 | Composant | Stack | Build | Tests |
 |---|---|---|---|
-| `app/front` | Angular 17 / TypeScript | `ng build` (npm) | Karma + Jasmine |
-| `app/back` | Spring Boot 3.5.16 / Java 17 | `gradlew build` | JUnit 5 |
-| Base de données | HyperSQL (en mémoire) | — | — |
+| [`app/front`](app/front/) | Angular 17 / TypeScript | `ng build` | Karma + Jasmine |
+| [`app/back`](app/back/) | Spring Boot 3.5.16 / Java 17 | `gradlew build` | JUnit 5 |
+| Base de données | HyperSQL, en mémoire | — | — |
 
-Artefacts de livraison : **2 images Docker** publiées sur **GHCR**, publiquement accessibles :
-
-```
-ghcr.io/jihatech/oc-devops-p6-orion/orion-microcrm-back:1.0.0
-ghcr.io/jihatech/oc-devops-p6-orion/orion-microcrm-front:1.0.0
-```
-
-## Structure du dépôt
+Artefacts de livraison : **2 images Docker** publiées sur GHCR, **publiquement accessibles** :
 
 ```
-├── .github/workflows/   # Pipeline CI/CD (GitHub Actions)
-├── app/                 # Application MicroCRM fournie
-│   ├── front/           # Angular 17 + Dockerfile multi-étages
-│   └── back/            # Spring Boot 3 (Gradle) + Dockerfile multi-étages
-├── scripts/             # Scripts d'automatisation (Bash + Python)
-├── helm/                # Charts Helm, values par environnement
-├── terraform/           # Modules IaC commentés
-├── ansible/             # Playbooks de provisionnement et d'exploitation
-├── elk/                 # Stack de journalisation + tableaux de bord Kibana
-└── docs/                # Documentation du projet
-    ├── contexte/        # Sondages Orion (sources primaires)
-    ├── captures/        # Captures d'écran (ELK, SonarQube, pipeline, DORA)
-    └── JOURNAL_IA.md    # Journal de méthodologie et d'usage de l'IA
+ghcr.io/jihatech/oc-devops-p6-orion/orion-microcrm-back:1.3.0
+ghcr.io/jihatech/oc-devops-p6-orion/orion-microcrm-front:1.3.0
 ```
 
-## Documentation
+---
 
-| Document | Contenu |
-|---|---|
-| [`docs/01-audit-swot.md`](docs/01-audit-swot.md) | Audit du processus CI existant : SWOT, goulots d'étranglement, lacunes de sécurité mappées OWASP |
-| [`docs/02-veille-recommandations.md`](docs/02-veille-recommandations.md) | Veille comparative (8 familles d'outils), recommandations argumentées, solutions **écartées**, priorisation MoSCoW |
-| [`docs/03-normalisation-plan-ci.md`](docs/03-normalisation-plan-ci.md) | Structure cible du pipeline, **ordre d'exécution argumenté**, portes de qualité, schémas Mermaid |
-| [`docs/04-plan-tests.md`](docs/04-plan-tests.md) | 16 types de tests (périmètre, outil, fréquence, critères), exclusions motivées, seuils chiffrés |
-| [`docs/05-plan-securite.md`](docs/05-plan-securite.md) | Objectifs, contrôles, gestion des secrets, **mapping OWASP Top 10**, réponse à incident, risques résiduels |
-| [`docs/captures/sonarqube/`](docs/captures/sonarqube/) | **Preuves d'analyse et comparaison avant/après** |
-| [`docs/captures/images/`](docs/captures/images/) | **Durcissement des images** — 31→0 et 55→0 vulnérabilités |
-| [`docs/captures/rollback/`](docs/captures/rollback/) | **Rollback et migrations** — démonstrations exécutées sur Minikube |
-| [`docs/captures/iac/`](docs/captures/iac/) | **Terraform et Ansible** — apply, idempotence, lint au profil production |
-| [`docs/captures/elk/`](docs/captures/elk/) | **Stack ELK** — index, tableaux de bord, alertes, données agrégées |
-| [`docs/captures/dora/`](docs/captures/dora/) | **Indicateurs DORA** — mesurés sur l'historique réel du dépôt |
-| [`docs/JOURNAL_IA.md`](docs/JOURNAL_IA.md) | Méthodologie, décisions et arbitrages, usage de l'IA |
+## Le pipeline
 
-## Chaîne cible en un coup d'œil
+Défini dans [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — **13 jobs**, environ 7 minutes.
 
 ```
 ① lint  →  ② build  →  ③ test  →  ④ security  →  ⑤ package  →  déploiement Helm
 ```
 
-- **Sécurité en amont** : SonarQube (SAST + security hotspots), `npm audit`, Trivy (`fs`, `image`, `config`).
-- **Aucune image vulnérable ne peut atteindre le registre** : le scan Trivy est effectué **entre** la
-  construction et la publication.
-- **Traçabilité** : commit conventionnel → `semantic-release` → tag sémantique → tag d'image → release
-  déployée.
-- **Réversibilité** : `helm rollback` vers la version N-1, documenté **et testé**.
-
-## Prérequis (environnement de développement)
-
-| Outil | Version validée |
-|---|---|
-| Docker | 28.5.1 |
-| Minikube / kubectl / Helm | 1.38.1 / 1.34.1 / 4.2.3 |
-| Terraform | 1.15.6 |
-| Node.js / npm | 25.2.1 / 11.6.2 |
-| Java (JDK) | 17 |
-| Python | 3.11 |
-| Git | 2.54 |
-
-## Conventions
-
-- **Commits** : [Conventional Commits](https://www.conventionalcommits.org/) en français —
-  `<type>(<portée>): <description>`. Ils pilotent `semantic-release`.
-- **Branches** : trunk-based — `main` protégée, branches courtes `feat/*`, `fix/*`, `chore/*`.
-- **Sécurité** : **aucun credential versionné**. Secrets en GitHub Secrets et Secrets Kubernetes ;
-  permissions de workflow minimales.
-
----
-
-## Pipeline d'intégration continue
-
-Défini dans [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — **13 jobs**.
-
 | Étape | Jobs | Contrôles |
 |---|---|---|
-| ① lint | `lint-front`, `lint-scripts`, `lint-manifestes` | ESLint · ShellCheck (version épinglée) · syntaxe Python · bits exécutables · `helm lint` + rendu + kubeconform |
-| ② build | `build-front`, `build-back` | Bundle Angular de production · JAR Spring Boot — publiés en artefacts |
+| ① lint | `lint-front`, `lint-scripts`, `lint-manifestes` | ESLint · ShellCheck · syntaxe Python · bits exécutables · **liens de documentation** · `helm lint` · `terraform validate` · `ansible-lint` · kubeconform |
+| ② build | `build-front`, `build-back` | Bundle Angular · JAR Spring Boot, publiés en artefacts |
 | ③ test | `test-front`, `test-back`, `test-scripts` | Karma + LCOV · JUnit + JaCoCo · 31 tests bash_unit · **cycle sauvegarde → restauration vérifié** |
 | ④ security | `sonarqube`, `scan-securite` | SonarQube (SAST + hotspots + **quality gate bloquante**) · `npm audit` · Trivy `fs`, `secret`, `config` |
-| ⑤ package | `package`, `release` | `docker build` → **scan Trivy bloquant** → push GHCR · `semantic-release` (version, changelog, tags sémantiques) |
-| — | `notification` | Synthèse Markdown dans l'onglet Actions, issue de suivi sur échec |
+| ⑤ package | `package`, `release` | `docker build` → **scan Trivy bloquant** → push GHCR · semantic-release |
+| — | `notification` | Synthèse dans l'onglet Actions, **issue de suivi sur échec** |
 
-**L'ordre interne de l'étape ⑤ est le point à retenir** : le scan Trivy se situe **entre** le
-`docker build` et le `docker push`, dans le même job. Une image vulnérable n'atteint donc **jamais**
-le registre. Le placer dans un job ultérieur aurait été plus simple à écrire, mais inopérant :
-l'image serait déjà publiée au moment du verdict.
+### Les trois points d'architecture à retenir
 
-**Résultats de la dernière exécution** :
+1. **Le scan Trivy se situe entre `docker build` et `docker push`, dans le même job.** Une image
+   vulnérable n'atteint donc jamais le registre. Le placer dans un job ultérieur aurait été plus
+   simple à écrire, mais inopérant : l'image serait déjà publiée au moment du verdict.
+2. **Le pipeline appelle les scripts, il ne réimplémente pas leur logique.** Un développeur reproduit
+   exactement le comportement de la chaîne sur son poste.
+3. **Les images ne sont jamais reconstruites à la release.** Les tags sémantiques sont ajoutés au
+   manifeste déjà publié : l'artefact promu est, au bit près, celui qui a été testé et scanné.
+
+### Résultats de la dernière exécution
 
 | Indicateur | Valeur |
 |---|---|
-| Tests | **10** (8 front + 2 back), 100 % de réussite · **31** tests bash_unit |
+| Tests | 10 applicatifs (100 %) · **31** tests de scripts |
 | Couverture | backend **65,9 %** · frontend **30,8 %** · projet **37,4 %** |
-| Quality gate SonarQube | ✅ OK — 0 vulnérabilité, 0 hotspot, **0 bug**, note de sécurité **A** |
+| Quality gate SonarQube | ✅ OK — 0 vulnérabilité, 0 hotspot, **0 bug**, notes **A/A/A** |
+| Sécurité des images | **0 vulnérabilité** HIGH/CRITICAL corrigible |
+| Sécurité des dépendances | 0 critique en production · 12 CVE acceptées, datées |
 | Lint | 0 erreur ESLint (10 avertissements suivis) · 0 défaut ShellCheck |
-| Sécurité des dépendances | 0 critique en production · **12 CVE acceptées explicitement et datées** |
-| **Sécurité des images** | **0 vulnérabilité** HIGH/CRITICAL corrigible sur les deux images |
-| Release | `v1.0.0` publiée automatiquement, changelog généré, images promues sans reconstruction |
+
+---
+
+## Documentation
+
+| Document | Contenu |
+|---|---|
+| [`01-audit-swot.md`](docs/01-audit-swot.md) | Audit du processus existant : SWOT, goulots, lacunes mappées OWASP |
+| [`02-veille-recommandations.md`](docs/02-veille-recommandations.md) | 8 familles d'outils comparées, **9 solutions écartées**, priorisation MoSCoW |
+| [`03-normalisation-plan-ci.md`](docs/03-normalisation-plan-ci.md) | Structure du pipeline, **ordre d'exécution argumenté**, portes de qualité |
+| [`04-plan-tests.md`](docs/04-plan-tests.md) | 16 types de tests, exclusions motivées, seuils chiffrés |
+| [`05-plan-securite.md`](docs/05-plan-securite.md) | Contrôles, secrets, **OWASP Top 10**, risques résiduels |
+| [`06-architecture.md`](docs/06-architecture.md) | 4 schémas — CI/CD, infrastructure locale, **cloud cible**, secrets |
+| [`07-plan-releases-rollback-backup.md`](docs/07-plan-releases-rollback-backup.md) | Releases, versions entre environnements, **rollback**, sauvegarde |
+| [`08-rapport-performance-matiere.md`](docs/08-rapport-performance-matiere.md) | **Avant / après**, DORA, gains, retours d'expérience, recommandations |
+| [`09-evolution-cloud.md`](docs/09-evolution-cloud.md) | Migration vers le cloud : étapes, **coûts**, risques, multi-cloud |
+| [`10-conformite-et-soutenance.md`](docs/10-conformite-et-soutenance.md) | **Conformité à la fiche** et réponses aux 6 questions de soutenance |
+| [`JOURNAL_IA.md`](docs/JOURNAL_IA.md) | Méthodologie, décisions, incidents, usage de l'IA |
+
+### Preuves d'exécution
+
+| Répertoire | Contenu |
+|---|---|
+| [`captures/sonarqube/`](docs/captures/sonarqube/) | Analyses et **comparaison avant/après** — bugs 2 → 0, fiabilité C → A |
+| [`captures/images/`](docs/captures/images/) | Durcissement des images — **86 → 0** vulnérabilités |
+| [`captures/rollback/`](docs/captures/rollback/) | Rollback et migrations — démonstrations exécutées sur Minikube |
+| [`captures/iac/`](docs/captures/iac/) | Terraform et Ansible — apply, idempotence, lint profil production |
+| [`captures/elk/`](docs/captures/elk/) | Stack ELK — index, tableaux de bord, alertes, données agrégées |
+| [`captures/dora/`](docs/captures/dora/) | Indicateurs DORA mesurés sur l'historique réel du dépôt |
+
+---
+
+## Structure du dépôt
+
+```
+├── .github/workflows/   # Pipeline CI/CD (13 jobs)
+├── app/                 # Application MicroCRM fournie
+│   ├── front/           # Angular 17 + Dockerfile multi-étages
+│   └── back/            # Spring Boot 3 + Dockerfile multi-étages
+├── scripts/             # 13 scripts d'automatisation (Bash + Python)
+├── helm/microcrm/       # Chart Helm, values par environnement
+├── terraform/           # Modules IaC — namespaces, quotas, politiques réseau
+├── ansible/             # 3 playbooks — prérequis, déploiement, sauvegarde
+├── elk/                 # Stack d'observabilité entièrement en code
+└── docs/                # Documentation, journal et preuves d'exécution
+```
+
+---
 
 ## Scripts d'automatisation
 
-Chaque script porte en tête sa documentation complète : **BUT, FONCTIONNEMENT, PARAMÈTRES,
-CONDITIONS D'EXÉCUTION**, exemples et codes de sortie. `--aide` l'affiche.
+Chaque script porte en tête sa documentation complète — **BUT, FONCTIONNEMENT, PARAMÈTRES,
+CONDITIONS D'EXÉCUTION** —, ses exemples et ses codes de sortie. `--aide` l'affiche.
 
 | Script | Rôle |
 |---|---|
-| [`scripts/lib/commun.sh`](scripts/lib/commun.sh) | Bibliothèque partagée — journalisation, prérequis, **fonctions pures testées** |
-| [`scripts/install-deps.sh`](scripts/install-deps.sh) | Installation déterministe (`npm ci`, résolution Gradle), mode hors ligne |
-| [`scripts/run-tests.sh`](scripts/run-tests.sh) | Tests + collecte des rapports JUnit, LCOV et JaCoCo |
-| [`scripts/deploy-build.sh`](scripts/deploy-build.sh) | Déploiement Docker avec **test de fumée et rollback automatique** |
-| [`scripts/backup.sh`](scripts/backup.sh) | Sauvegarde vérifiée (SHA-256 + manifeste) **et restauration** |
-| [`scripts/notify.py`](scripts/notify.py) | Synthèse de pipeline — GitHub Summary, issue sur échec (sans dépendance externe) |
-| [`scripts/scan-securite.sh`](scripts/scan-securite.sh) | Contrôles de sécurité — dépendances, secrets, configurations |
-| [`scripts/sonar-analyse.sh`](scripts/sonar-analyse.sh) | Analyse SonarQube — serveur éphémère, jeton généré à l'exécution |
-| [`scripts/sonar-report.py`](scripts/sonar-report.py) | Quality gate et export des preuves d'analyse |
-| [`scripts/rollback.sh`](scripts/rollback.sh) | Retour à la version N-1, **avec vérification du service** |
-| [`scripts/dora-metrics.py`](scripts/dora-metrics.py) | Les 4 indicateurs DORA depuis l'API GitHub — JSON, CSV, Markdown, NDJSON |
-| [`scripts/elk-setup.sh`](scripts/elk-setup.sh) | Configuration reproductible d'ELK — modèle, vues, tableaux de bord, alertes |
-| [`scripts/verifier-liens.py`](scripts/verifier-liens.py) | Interdit les liens morts dans la documentation |
+| [`lib/commun.sh`](scripts/lib/commun.sh) | Bibliothèque partagée — **fonctions pures testées** |
+| [`install-deps.sh`](scripts/install-deps.sh) | Installation déterministe, mode hors ligne |
+| [`run-tests.sh`](scripts/run-tests.sh) | Tests + collecte JUnit, LCOV, JaCoCo |
+| [`deploy-build.sh`](scripts/deploy-build.sh) | Déploiement Docker avec test de fumée et rollback |
+| [`rollback.sh`](scripts/rollback.sh) | Retour à N-1, **avec vérification du service** |
+| [`backup.sh`](scripts/backup.sh) | Sauvegarde vérifiée (SHA-256, manifeste) **et restauration** |
+| [`scan-securite.sh`](scripts/scan-securite.sh) | Dépendances, secrets, configurations |
+| [`sonar-analyse.sh`](scripts/sonar-analyse.sh) | Analyse SonarQube — serveur éphémère, jeton généré |
+| [`sonar-report.py`](scripts/sonar-report.py) | Quality gate et export des preuves |
+| [`dora-metrics.py`](scripts/dora-metrics.py) | Les 4 indicateurs DORA — JSON, CSV, Markdown, NDJSON |
+| [`notify.py`](scripts/notify.py) | Synthèse de pipeline, issue sur échec |
+| [`elk-setup.sh`](scripts/elk-setup.sh) | Configuration reproductible d'ELK |
+| [`verifier-liens.py`](scripts/verifier-liens.py) | Interdit les liens morts dans la documentation |
 
-### Utilisation locale (reproductible)
-
-```bash
-# 1. Dépendances des deux composants
-./scripts/install-deps.sh
-
-# 2. Tests avec couverture, rapports dans reports/
-./scripts/run-tests.sh --sortie reports
-
-# 3. Synthèse lisible des résultats
-python3 scripts/notify.py --statut succes --rapports reports --canal console
-
-# 4. Sauvegarde (rétention : 7 archives) puis restauration vérifiée
-./scripts/backup.sh --retention 7
-./scripts/backup.sh --mode restauration \
-    --archive backups/microcrm_<horodatage>.tar.gz --cible /tmp/restaure
-
-# 5. Déploiement local Docker, avec test de fumée et rollback si échec
-./scripts/deploy-build.sh --environnement dev
-```
-
-### Contrôles qualité des scripts
+### Contrôles qualité
 
 ```bash
 shellcheck --shell=bash --severity=style --external-sources \
     scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh   # 0 défaut
-
 bash_unit scripts/tests/test_commun.sh                 # 31 tests
+python3 scripts/verifier-liens.py                      # 0 lien mort
 ```
-
-### Contrôles de sécurité
-
-```bash
-./scripts/scan-securite.sh                             # dépendances, secrets, configurations
-./scripts/sonar-analyse.sh --demarrer --arreter        # analyse SonarQube complète
-```
-
-Les acceptations de risque sont tracées dans [`.trivyignore.yaml`](.trivyignore.yaml) : chacune porte
-une justification et une **date d'expiration**. Le seuil bloquant reste à `HIGH` — **toute nouvelle
-vulnérabilité bloque le pipeline**.
 
 La **décision** de purge des sauvegardes est isolée dans une fonction pure, séparée de son
-**exécution**, et couverte par des tests de cas limites (rétention nulle, négative, non numérique,
-égalité stricte) : un défaut à cet endroit détruirait des sauvegardes.
+**exécution**, et couverte par des tests de cas limites : rétention nulle, négative, non numérique,
+égalité stricte. Un défaut à cet endroit détruirait des sauvegardes.
 
 ---
 
-## Déploiement sur Kubernetes
-
-```bash
-# 1. Cluster local et images (dans le démon Docker de Minikube)
-minikube start --driver=docker --cpus=2 --memory=3g
-eval $(minikube -p minikube docker-env --shell bash)
-docker build -f app/back/Dockerfile  -t orion-microcrm-back:1.0.0  app/
-docker build -f app/front/Dockerfile -t orion-microcrm-front:1.0.0 app/
-
-# 2. Déploiement (le tag d'image est OBLIGATOIRE — le chart refuse un rendu sans lui)
-kubectl create namespace orion-dev
-helm upgrade --install microcrm helm/microcrm -n orion-dev     -f helm/microcrm/values-dev.yaml --set image.tag=1.0.0 --wait
-
-# 3. Accès à l'application
-kubectl port-forward -n orion-dev svc/microcrm-front 8081:8080
-#    → http://localhost:8081  (le frontend relaie /api vers le backend)
-
-# 4. Retour à la version précédente, vérifié
-./scripts/rollback.sh --release microcrm --namespace orion-dev
-```
-
-Depuis GHCR (environnement de recette), remplacer l'étape 1 par
-`-f helm/microcrm/values-staging.yaml`, qui tire les images du registre.
-
-### Ce que garantit le chart
+## Ce que garantit le déploiement
 
 | Garantie | Mécanisme |
 |---|---|
@@ -234,4 +263,33 @@ Depuis GHCR (environnement de recette), remplacer l'étape 1 par
 | Un pod défaillant ne reçoit jamais de trafic | `startupProbe` + `readinessProbe` |
 | Une migration impossible bloque **avant** tout déploiement | Job Helm `pre-upgrade` par composant |
 | Impossible de déployer une version non identifiable | `image.tag` obligatoire, sans repli |
-| Retour arrière vérifié | `scripts/rollback.sh` + test de fumée |
+| Retour arrière vérifié | `rollback.sh` + test de fumée |
+| Aucune image vulnérable au registre | Scan Trivy **entre** build et push |
+
+---
+
+## Conventions
+
+- **Commits** : [Conventional Commits](https://www.conventionalcommits.org/) en français —
+  `<type>(<portée>): <description>`. Ils pilotent `semantic-release`.
+- **Branches** : trunk-based — `main` protégée, branches courtes `feat/*`, `fix/*`, `chore/*`.
+- **Versions** : sémantiques, déduites des commits. Un déploiement référence **toujours** un tag
+  immuable.
+- **Sécurité** : **aucun credential versionné**. Secrets en GitHub Secrets et Secrets Kubernetes,
+  permissions de workflow minimales, jetons éphémères.
+
+---
+
+## Écarts assumés
+
+Documentés en détail dans [`10-conformite-et-soutenance.md`](docs/10-conformite-et-soutenance.md) §6.
+
+| Écart | Motif |
+|---|---|
+| GitHub plutôt que GitLab | Fiche : « GitLab **ou équivalent** » ; validé par le mentor ; table de correspondance fournie |
+| SonarQube en conteneur plutôt que SonarCloud | Aucune dépendance externe, aucun secret : l'évaluateur relance tout |
+| Minikube plutôt qu'un cluster managé | ~180 €/mois sans bénéfice hors production ; migration chiffrée dans le document 09 |
+| Base HSQLDB conservée | Développement applicatif, hors périmètre — **recommandation n°1** |
+| API sans authentification | Même motif ; signalée comme **risque critique** |
+| 12 CVE acceptées | Correctif à deux versions majeures ; acceptations **datées au 30/11/2026** |
+| Couverture à 37,4 % | L'application est arrivée sans tests exploitables ; axe d'amélioration chiffré |
