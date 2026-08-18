@@ -210,6 +210,25 @@ attribut_xml() {
     printf '%s\n' "${valeur:-0}"
 }
 
+# compter_occurrences <fichier> <motif>
+#   Compte les occurrences d'un motif dans un fichier et retourne TOUJOURS un
+#   entier, y compris quand le fichier est absent ou ne contient aucune
+#   correspondance.
+#
+#   ⚠️ Cette fonction existe à cause d'un défaut réel. Sous `set -o pipefail`,
+#   un `grep` sans correspondance renvoie 1, ce qui fait échouer tout le
+#   pipeline de comptage — et donc le script, via `set -e`. Autrement dit :
+#   « zéro vulnérabilité trouvée » provoquait l'échec du job de sécurité,
+#   exactement le cas que l'on cherche à obtenir. ShellCheck ne détecte pas
+#   cette classe d'erreur ; seule l'exécution la révèle.
+compter_occurrences() {
+    local fichier="${1:-}" motif="${2:-}"
+    [[ -f "$fichier" ]] || { printf '0\n'; return 0; }
+    local n
+    n=$(grep -o -- "$motif" "$fichier" 2>/dev/null | wc -l | tr -d ' \n' || true)
+    printf '%s\n' "${n:-0}"
+}
+
 # [PURE] valider_environnement <valeur>
 #   Valide un nom d'environnement de déploiement.
 #   dev | staging | prod — alignés sur les values Helm (phase 4).

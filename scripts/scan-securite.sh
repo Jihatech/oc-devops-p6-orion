@@ -188,7 +188,7 @@ controle_dependances() {
     if [[ -f "$ignorefile" ]]; then
         options+=(--ignorefile "$ignorefile")
         local acceptees
-        acceptees=$(grep -c '^  - id:' "$ignorefile" || echo 0)
+        acceptees=$(compter_occurrences "$ignorefile" '^  - id:')
         log_info "acceptations de risque explicites : $acceptees (voir .trivyignore.yaml)"
     fi
 
@@ -198,8 +198,7 @@ controle_dependances() {
     trivy "${options[@]}" "$racine/app" || true
 
     local nb
-    nb=$(grep -o '"VulnerabilityID"' "$sortie/trivy-dependances.json" 2>/dev/null | wc -l | tr -d ' ')
-    nb="${nb:-0}"
+    nb=$(compter_occurrences "$sortie/trivy-dependances.json" '"VulnerabilityID"')
 
     log_info "vulnérabilités $SEVERITE corrigibles : $nb"
     resume_ci "Trivy — dépendances" "$nb vulnérabilité(s) $SEVERITE"
@@ -224,8 +223,7 @@ controle_secrets() {
         --format json --output "$sortie/trivy-secrets.json" "$racine" || true
 
     local nb
-    nb=$(grep -o '"RuleID"' "$sortie/trivy-secrets.json" 2>/dev/null | wc -l | tr -d ' ')
-    nb="${nb:-0}"
+    nb=$(compter_occurrences "$sortie/trivy-secrets.json" '"RuleID"')
 
     resume_ci "Trivy — secrets" "$nb détection(s)"
 
@@ -253,8 +251,7 @@ controle_configuration() {
         --format json --output "$sortie/trivy-config.json" "$racine" || true
 
     local nb
-    nb=$(grep -o '"AVDID"' "$sortie/trivy-config.json" 2>/dev/null | wc -l | tr -d ' ')
-    nb="${nb:-0}"
+    nb=$(compter_occurrences "$sortie/trivy-config.json" '"AVDID"')
 
     log_info "mauvaises configurations $SEVERITE : $nb"
     resume_ci "Trivy — configurations" "$nb point(s) $SEVERITE"

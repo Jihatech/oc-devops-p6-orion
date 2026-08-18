@@ -223,6 +223,54 @@ test_attribut_xml_ne_confond_pas_les_attributs_de_prefixe_proche() {
 }
 
 # -----------------------------------------------------------------------------
+# compter_occurrences — régression : pipefail + grep sans correspondance
+# -----------------------------------------------------------------------------
+
+test_compter_occurrences_compte_les_correspondances() {
+    local f="${BASH_UNIT_TMP:-/tmp}/orion_compte.txt"
+    printf '"RuleID": "a"\n"RuleID": "b"\nautre\n' > "$f"
+    assert_equals "2" "$(compter_occurrences "$f" '"RuleID"')"
+    rm -f "$f"
+}
+
+test_compter_occurrences_retourne_zero_sans_correspondance() {
+    # LE cas du défaut : sous `set -o pipefail`, un grep sans correspondance
+    # renvoie 1 et faisait échouer le job de sécurité — c'est-à-dire que
+    # « zéro vulnérabilité détectée » provoquait un échec du pipeline.
+    local f="${BASH_UNIT_TMP:-/tmp}/orion_vide.json"
+    printf '{"Results":[]}\n' > "$f"
+    assert_equals "0" "$(compter_occurrences "$f" '"VulnerabilityID"')" \
+        "aucune correspondance doit valoir 0, pas un échec"
+    rm -f "$f"
+}
+
+# Exécute un comptage sans correspondance dans un sous-shell STRICT.
+# Retourne 0 si le sous-shell survit et obtient bien « 0 ».
+essai_comptage_strict() {
+    (
+        set -euo pipefail
+        local n
+        n=$(compter_occurrences "$1" 'motif-absent-du-fichier')
+        [[ "$n" == "0" ]]
+    )
+}
+
+test_compter_occurrences_ne_casse_pas_sous_set_e() {
+    # Vérifie explicitement que l'appel ne fait pas sortir un script strict.
+    # C'est LE comportement qui manquait : le job de sécurité s'interrompait
+    # au moment précis où il n'avait rien trouvé.
+    local f="/tmp/orion_vide2.json"
+    printf 'rien\n' > "$f"
+    assert "essai_comptage_strict '$f'" \
+        "la fonction doit rester sûre sous set -euo pipefail"
+    rm -f "$f"
+}
+
+test_compter_occurrences_retourne_zero_si_fichier_absent() {
+    assert_equals "0" "$(compter_occurrences /chemin/inexistant/orion.json 'motif')"
+}
+
+# -----------------------------------------------------------------------------
 # verifier_commande
 # -----------------------------------------------------------------------------
 
