@@ -2,6 +2,13 @@
 
 Ce fichier est genere automatiquement par semantic-release a partir des messages de commit conventionnels. Ne pas le modifier a la main.
 
+## [1.2.0](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.1.1...v1.2.0) (2026-08-18)
+
+### Fonctionnalités
+
+* **dora:** calculer les quatre indicateurs DORA sur les donnees reelles ([b60f637](https://github.com/Jihatech/oc-devops-p6-orion/commit/b60f63740bbd9b293106119dce51643b0fbadee7))
+* **iac:** provisionner les environnements avec Terraform et Ansible ([34fea85](https://github.com/Jihatech/oc-devops-p6-orion/commit/34fea85fce029ba7de735617008a65deb58c2597))
+
 ## [1.1.1](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.1.0...v1.1.1) (2026-08-18)
 
 ### Corrections
