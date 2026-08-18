@@ -35,3 +35,7 @@ secrets.yaml
 .idea/
 .DS_Store
 Thumbs.db
+
+# --- Artefacts Python ---
+__pycache__/
+*.pyc
