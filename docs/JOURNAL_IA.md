@@ -332,7 +332,129 @@ a permis de ne pas le voir.
 
 ## Phase 4 — Conteneurisation, orchestration, release
 
-*(à compléter)*
+**Période** : 18/08/2026
+**Livrables** : Dockerfiles par composant, chart Helm, étape ⑤ du pipeline (package + release),
+`scripts/rollback.sh`, migrations par composant, preuves dans `docs/captures/images/` et
+`docs/captures/rollback/`
+
+### Décisions guidées par la mesure, non par la préférence
+
+**1. Caddy → nginx-unprivileged.** Le Dockerfile fourni installait Caddy. À configuration
+fonctionnelle équivalente, le scan des deux images officielles donne :
+
+| Image | CVE HIGH/CRITICAL corrigibles |
+|---|---|
+| `caddy:2.11.2-alpine` | **55** |
+| `nginxinc/nginx-unprivileged:1.29-alpine` | **10** |
+
+**47 des 55** proviennent du binaire Go de Caddy, compilé avec une bibliothèque standard en retard.
+nginx, écrit en C, n'expose pas cette surface — et sa variante *unprivileged* écoute nativement sur
+8080 en utilisateur non privilégié, ce qui satisfait le constat A7 sans contorsion.
+
+> **Ce que cela illustre** : le scan d'image ne sert pas seulement à bloquer une livraison. Il a
+> orienté ici un **choix d'architecture**, sur une mesure et non sur une préférence.
+
+**2. Spring Boot 3.2.5 → 3.5.16.** Le scan de l'image backend remontait 31 paquets vulnérables
+(`spring-webmvc`, `tomcat-embed-core`, `jackson-databind`…). Contrairement au cas Angular de la
+phase 3, les correctifs existaient **dans la même version majeure** : montée mineure, risque de
+régression faible, tests verts après application. 31 → 3.
+
+**3. `apk --no-cache upgrade` dans les étages d'exécution.** Restaient 13 CVE de paquets système
+Alpine, corrigées dans les dépôts mais pas encore dans les images de base publiées. Deux options :
+
+| Option | Effet | Retenue |
+|---|---|---|
+| Les accepter dans `.trivyignore.yaml` | L'image reste vulnérable en attendant une reconstruction amont, sur laquelle Orion n'a aucune prise | ❌ |
+| Appliquer les correctifs à la construction | Les 13 CVE disparaissent réellement | ✅ |
+
+**Compromis assumé** : la base reste épinglée par digest — le point de départ est déterministe —,
+mais les paquets corrigés sont tirés au moment de la construction. Deux constructions éloignées
+peuvent différer d'un niveau de correctif. C'est le bon arbitrage : sans cette ligne, l'image traîne
+les CVE du jour de publication de sa base.
+
+**Résultat cumulé : 0 vulnérabilité HIGH/CRITICAL corrigible sur les deux images** (31→0 et 55→0).
+La porte de sécurité du pipeline peut donc rester stricte, sans aucune exception.
+
+### Correction indispensable au déploiement : l'URL de l'API
+
+Le frontend appelait `http://localhost:8080` **en dur** (`config.ts`). Ce choix fonctionne sur un
+poste de développement mais rend l'application **indéployable** : le navigateur de l'utilisateur
+résoudrait `localhost` vers sa propre machine.
+
+Une ligne modifiée (`/api`), un relais nginx, et une variable `BACKEND_URL` injectée par Helm : la
+**même image** fonctionne en local, sur Minikube et sur un cluster managé, sans reconstruction.
+C'est l'application concrète du principe P3 « construire une fois, déployer partout ».
+
+### Le tag d'image obligatoire, sans repli
+
+Le helper Helm échoue si `image.tag` n'est pas fourni. J'avais d'abord prévu un repli sur
+`.Chart.AppVersion` — puis constaté en test que le garde-fou en devenait inatteignable, et surtout
+qu'il aurait fait déployer un tag d'image **jamais publié**, échouant en `ImagePullBackOff` : un
+symptôme obscur, loin de sa cause. Le repli a été supprimé, et un job de CI vérifie désormais que le
+garde-fou fonctionne toujours.
+
+### Migrations par composant
+
+Chaque composant exécute ses migrations dans **son propre Job Helm**, en hook `pre-upgrade`, avant
+que les Deployments ne soient modifiés. Trois écueils évités : un composant sans base bloqué par la
+migration d'un autre, une migration rejouée en concurrence par chaque réplique, une base à moitié
+migrée servie par une application déjà à jour.
+
+**Démonstration exécutée** : sur la version défectueuse, le Job échoue et `helm upgrade` s'arrête —
+**aucun pod n'est remplacé**. C'est la différence avec la détection par les sondes :
+
+| | Sondes | Hook de migration |
+|---|---|---|
+| Moment de détection | Après création du nouveau pod | **Avant** toute modification |
+| État du cluster | Un pod défaillant existe | **Inchangé** |
+| Action corrective | `helm rollback` nécessaire | **Aucune** |
+
+**Le meilleur rollback est celui qu'on n'a pas besoin de faire.**
+
+Précision assumée : c'est le **mécanisme** qui est démontré, pas un jeu de migrations réel — HSQLDB
+est en mémoire (constat A1). Le Job exécute un contrôle d'intégrité de l'artefact, qui a
+effectivement détecté la régression. La commande deviendra `flyway migrate` après migration vers
+PostgreSQL, sans rien changer à l'ordonnancement.
+
+### Les incidents de la phase, et leurs garde-fous
+
+| # | Incident | Cause réelle | Correction — et garde-fou |
+|---|---|---|---|
+| 1 | Build Docker en **exit 127** | `app/back/gradlew` avait des fins de ligne **CRLF** dans ma copie locale : `#!/bin/sh\r`. Invisible en CI, où `.gitattributes` normalise à la sortie — mais bloquant pour tout build Docker local | Normalisation en LF. Le dépôt, lui, était sain : c'était la copie de travail Windows qui divergeait |
+| 2 | Job release en échec | `npx --yes semantic-release@x @plugin@y` : npx interprétait les greffons comme des **arguments** (« Too many non-option arguments ») | Chaque paquet introduit par `-p` |
+| 3 | Lint rouge sur `rollback.sh` | Fichier versionné en 644 | **Le garde-fou ajouté en phase 2 après l'incident `gradlew` l'a signalé dès l'étape de lint, avec la commande de correction exacte.** Le garde-fou a payé. |
+| 4 | Fichiers `__pycache__/*.pyc` versionnés | Produits par mes vérifications locales de syntaxe Python | Retirés du suivi, ajoutés au `.gitignore` |
+
+L'incident n°3 mérite d'être souligné : un garde-fou posé deux phases plus tôt, en réaction à un
+autre incident, a attrapé exactement la même classe d'erreur sur un fichier différent. C'est ce que
+doit produire une démarche DevOps — pas seulement corriger, mais **rendre l'erreur impossible à
+répéter silencieusement**.
+
+### Résultats mesurés
+
+| Indicateur | Valeur |
+|---|---|
+| Exécution verte | [32165383499](https://github.com/Jihatech/oc-devops-p6-orion/actions/runs/32165383499) — **13/13 jobs** |
+| Vulnérabilités des images | **0** (backend 31→0, frontend 55→0) |
+| Release publiée | **v1.0.0**, changelog généré, tags `1.0.0` / `1.0` / `1` / `latest` |
+| Images sur GHCR | Publiquement accessibles (vérifié anonymement : HTTP 200) |
+| Rollback | **18 s**, vérifié par test de fumée |
+| Interruption de service pendant l'échec | **Aucune** — 200 sur toutes les requêtes |
+| Ressources Helm validées | 8 (kubeconform, 2 environnements) |
+
+### Usage de l'IA en phase 4
+
+| Usage | Nature |
+|---|---|
+| Rédaction des Dockerfiles, du chart et du workflow | **Assistée par IA**, sur une conception que j'ai arrêtée |
+| Choix Caddy/nginx, Spring Boot, `apk upgrade` | **Miens** — pris sur des **scans réellement exécutés**, chiffres à l'appui |
+| Diagnostic des 4 incidents | **Mien** — lecture des journaux d'exécution et des artefacts |
+| Vérification | **Exécution réelle** : images construites et scannées, cluster Minikube, déploiement, échec provoqué, rollback, migrations — tout est journalisé dans `docs/captures/` |
+
+**Point de méthode** : j'ai écrit un digest d'image **inventé** dans une première version du
+Dockerfile backend. Je l'ai remplacé par les digests réellement résolus via `docker manifest
+inspect` avant toute construction. Un digest plausible mais faux est pire qu'un tag : il donne
+l'apparence de la rigueur sans en avoir la substance.
 
 ## Phase 5 — IaC, monitoring, DORA
 
