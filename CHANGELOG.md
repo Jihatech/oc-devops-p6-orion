@@ -2,6 +2,12 @@
 
 Ce fichier est genere automatiquement par semantic-release a partir des messages de commit conventionnels. Ne pas le modifier a la main.
 
+## [1.1.0](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.0.0...v1.1.0) (2026-08-18)
+
+### Fonctionnalités
+
+* **helm:** ajouter les migrations par composant en hook pre-upgrade ([03e7f26](https://github.com/Jihatech/oc-devops-p6-orion/commit/03e7f26ac6a3efebef651e2305d2297744002c7a))
+
 ## 1.0.0 (2026-08-18)
 
 ### Fonctionnalités
