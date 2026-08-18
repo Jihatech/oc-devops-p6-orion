@@ -272,7 +272,9 @@ La **décision** de purge des sauvegardes est isolée dans une fonction pure, s�
 
 - **Commits** : [Conventional Commits](https://www.conventionalcommits.org/) en français —
   `<type>(<portée>): <description>`. Ils pilotent `semantic-release`.
-- **Branches** : trunk-based — `main` protégée, branches courtes `feat/*`, `fix/*`, `chore/*`.
+- **Branches** : trunk-based. Modèle comparé et justifié dans
+  [`03-normalisation-plan-ci.md`](docs/03-normalisation-plan-ci.md) §2.1, qui documente aussi
+  l'écart entre le modèle cible pour Orion et ce qui a été pratiqué sur ce projet solo.
 - **Versions** : sémantiques, déduites des commits. Un déploiement référence **toujours** un tag
   immuable.
 - **Sécurité** : **aucun credential versionné**. Secrets en GitHub Secrets et Secrets Kubernetes,

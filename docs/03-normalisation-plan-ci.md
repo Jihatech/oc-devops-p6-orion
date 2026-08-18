@@ -27,19 +27,104 @@ Cinq principes gouvernent la conception du pipeline ; chacun découle d'un const
 
 ## 2. Conventions de nommage
 
-### 2.1 Branches
+### 2.1 Modèle de branches
 
-| Branche | Rôle | Protection |
+#### Les trois modèles évalués
+
+| Critère | Git Flow | GitHub Flow | **Trunk-Based** |
+|---|---|---|---|
+| Branches permanentes | `main` et `develop` | `main` | **`main` seule** |
+| Branches temporaires | `feature/*`, `release/*`, `hotfix/*` | `feature/*` | Branches très courtes, moins de 24 h |
+| Durée de vie d'une branche | Jours à semaines | Jours | **Heures** |
+| Fusion vers `main` | Via `release/*` | Directe, après revue | **Directe, après revue** |
+| Effet sur le *lead time* | **Dégradé** — deux niveaux d'intégration | Correct | **Optimal** |
+| Risque de conflit | Élevé, branches longues | Moyen | **Faible** |
+| Adapté à | Versions livrées à des clients, support de plusieurs versions | Applications web, équipes moyennes | **Livraison continue, petites équipes** |
+
+#### Modèle retenu pour Orion : Trunk-Based Development
+
+| Branche | Rôle | Durée de vie | Protection cible |
+|---|---|---|---|
+| `main` | Source de vérité, toujours déployable | Permanente | Revue exigée, CI verte requise |
+| `feat/<sujet>` | Nouvelle fonctionnalité | Moins de 24 h | — |
+| `fix/<sujet>` | Correction | Moins de 24 h | — |
+| `chore/<sujet>` | Outillage, CI, documentation | Moins de 24 h | — |
+
+**Trois raisons, toutes rattachées au contexte d'Orion.**
+
+1. **La taille de l'équipe.** Quatre développeurs et deux exploitants. Git Flow suppose des rôles
+   distincts — qui prépare la release, qui la valide, qui la publie — que cette équipe n'a pas. La
+   cérémonie de fusion coûterait plus qu'elle ne rapporte.
+
+2. **L'objectif de délai.** Le projet vise explicitement à améliorer le *lead time*, l'un des quatre
+   indicateurs DORA. Git Flow ajoute **deux niveaux d'intégration** entre l'écriture d'un commit et
+   sa livraison : `feature` vers `develop`, puis `develop` vers `main` via une `release`. Chaque
+   niveau ajoute de l'attente. Choisir Git Flow reviendrait à dégrader volontairement l'indicateur
+   que l'on cherche à améliorer.
+
+3. **L'absence de versions à maintenir en parallèle.** Git Flow existe pour supporter simultanément
+   plusieurs versions livrées à des clients distincts. MicroCRM est une application web à version
+   unique : la branche `hotfix/*` n'aurait jamais d'usage réel.
+
+**GitHub Flow était le concurrent sérieux** — il est proche, et l'écart tient à la durée de vie des
+branches. Le trunk-based impose des branches de moins de 24 heures, ce qui force à découper le
+travail en incréments livrables. C'est une contrainte utile pour une équipe qui n'a pas encore figé
+ses conventions, puisqu'elle empêche mécaniquement les branches longues et les fusions douloureuses.
+
+#### Cohérence avec le reste de la chaîne
+
+Le modèle de branches n'est pas un choix isolé : il conditionne trois autres décisions.
+
+| Décision liée | Lien avec le trunk-based |
+|---|---|
+| **Commits conventionnels** | La version est déduite des commits fusionnés dans `main` ; sans intégration continue dans `main`, `semantic-release` n'aurait pas de source fiable |
+| **Une release par fusion sur `main`** | Possible seulement parce que `main` est toujours déployable |
+| **Portes de qualité bloquantes** | C'est ce qui rend `main` toujours déployable : sans elles, l'intégration directe deviendrait dangereuse |
+
+> Le trunk-based n'est viable **que** parce que le pipeline est strict. Un modèle de branches
+> permissif et une chaîne permissive donnent un dépôt cassé ; un modèle permissif et une chaîne
+> stricte donnent un dépôt sain. C'est la chaîne qui autorise la simplicité du modèle, pas l'inverse.
+
+#### Ce qui a réellement été pratiqué sur ce projet — et l'écart assumé
+
+Il faut être précis, car l'historique du dépôt est public et vérifiable.
+
+| Mesure | Valeur réelle |
+|---|---|
+| Branches créées | **1** — `main` uniquement |
+| Commits | **52** |
+| Fusions | **0** |
+| Pull requests | **0** |
+| Protection de `main` | **Non activée** |
+| Durée du projet | 3 jours |
+
+**Ce projet a donc été mené en trunk-based « pur »**, avec des commits directs sur `main` — sans
+branches de fonctionnalité ni revue par les pairs.
+
+**Motif** : le projet est réalisé par **une seule personne**. Une pull request n'a de sens que s'il
+existe un relecteur ; s'auto-approuver ses propres demandes de fusion serait une cérémonie vide,
+qui donnerait l'apparence d'un processus de revue sans en produire aucun bénéfice.
+
+**Ce qui a été conservé du modèle**, et qui compte davantage que la mécanique des branches :
+
+- chaque commit respecte la convention et alimente le versionnement automatique ;
+- **le pipeline complet s'exécute sur chaque commit poussé sur `main`** — les portes de qualité sont
+  donc appliquées à chaque changement, exactement comme elles le seraient sur une pull request ;
+- `main` est restée déployable : les 52 commits sont tracés, et chaque échec de pipeline a été
+  corrigé avant le commit suivant.
+
+**Ce qui changerait avec l'équipe d'Orion** :
+
+| Élément | Aujourd'hui, projet solo | Avec 4 développeurs |
 |---|---|---|
-| `main` | Source de vérité, toujours déployable | Protégée : PR obligatoire, CI verte requise |
-| `feat/<sujet>` | Nouvelle fonctionnalité | — |
-| `fix/<sujet>` | Correction | — |
-| `chore/<sujet>` | Outillage, CI, documentation | — |
+| Branches de fonctionnalité | Non utilisées | Systématiques, moins de 24 h |
+| Revue par les pairs | Impossible | Une approbation exigée |
+| Protection de `main` | Non activée | Activée : revue et CI verte requises |
+| Contrôles de qualité | **Déjà appliqués à chaque commit** | Identiques, déplacés sur la pull request |
 
-**Stratégie retenue : trunk-based** avec branches courtes. Justification : équipe de 4 Dev,
-livraisons fréquentes, application pas encore en production. Un GitFlow complet (`develop`,
-`release/*`, `hotfix/*`) ajouterait une cérémonie de fusion sans bénéfice à cette taille, et
-**dégraderait le *lead time*** — l'un des 4 indicateurs DORA que le projet doit précisément améliorer.
+> L'écart porte donc sur la **revue humaine**, pas sur les contrôles automatisés : ceux-ci
+> s'exécutent déjà sur l'intégralité des changements. C'est la partie du modèle qui exige une équipe,
+> et qui ne pouvait pas être simulée honnêtement sur un projet individuel.
 
 ### 2.2 Commits — Conventional Commits (en français)
 

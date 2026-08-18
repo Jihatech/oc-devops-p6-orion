@@ -112,7 +112,7 @@ authentification.
 | Procédures de release documentées | [`07`](07-plan-releases-rollback-backup.md) §2 |
 | **Maintenance et rollback décrits** | [`07`](07-plan-releases-rollback-backup.md) §4, exécuté en 18 s |
 | **Feedbacks analysés** | 6 incidents, chacun transformé en garde-fou — [`08`](08-rapport-performance-matiere.md) §8 |
-| **Chaque script documenté** : but, fonctionnement, paramètres, conditions | Les 11 scripts de [`scripts/`](../scripts/) |
+| **Chaque script documenté** : but, fonctionnement, paramètres, conditions | Les **13 scripts** de [`scripts/`](../scripts/), plus la bibliothèque partagée |
 
 ---
 
@@ -341,4 +341,5 @@ Ces écarts sont **volontaires et documentés**. Les annoncer vaut mieux que de 
 | **12 vulnérabilités acceptées** | Correctif à deux versions majeures ; acceptations datées au 30/11/2026 | [`.trivyignore.yaml`](../.trivyignore.yaml) |
 | **Alertes sans canal de notification** | Nécessiterait des credentials externes ; configuration documentée | [`captures/elk/README.md`](captures/elk/README.md) |
 | **Politiques réseau non appliquées** | Minikube avec le pilote Docker ne les applique pas ; correctes et prêtes pour un cluster managé | `terraform/modules/namespace-applicatif/main.tf` |
+| **Aucune pull request, `main` non protégée** | Projet réalisé **par une seule personne** : s'auto-approuver ses fusions serait une cérémonie vide. Les portes de qualité s'exécutent malgré tout sur **chaque commit** | [`03`](03-normalisation-plan-ci.md) §2.1 |
 | **Couverture à 37,4 %** | L'application est arrivée sans tests exploitables ; assumée comme axe d'amélioration chiffré | [`08`](08-rapport-performance-matiere.md) §6 |

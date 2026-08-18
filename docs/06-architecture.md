@@ -38,7 +38,7 @@ Le passage de Minikube à un cluster managé (§4) ne touche ni la chaîne CI/CD
 
 ```mermaid
 flowchart TD
-    DEV["Développeur<br/>commit conventionnel"] --> GIT["Dépôt GitHub<br/>branche main protégée"]
+    DEV["Développeur<br/>commit conventionnel"] --> GIT["Dépôt GitHub<br/>branche main"]
 
     GIT --> E1
 
@@ -101,8 +101,8 @@ flowchart TD
 
 ### Description textuelle du schéma 2
 
-Un développeur produit un commit conventionnel qui alimente le dépôt GitHub, dont la branche
-principale est protégée. Le pipeline enchaîne cinq étapes séquentielles.
+Un développeur produit un commit conventionnel qui alimente la branche principale du dépôt
+GitHub. Le pipeline enchaîne cinq étapes séquentielles.
 
 L'**étape 1 (lint)** regroupe quatre contrôles rapides : ESLint sur le frontend, ShellCheck sur les
 scripts, la validation des charts Helm, du code Terraform et des playbooks Ansible, enfin la
