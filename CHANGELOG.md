@@ -2,6 +2,12 @@
 
 Ce fichier est genere automatiquement par semantic-release a partir des messages de commit conventionnels. Ne pas le modifier a la main.
 
+## [1.3.1](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.3.0...v1.3.1) (2026-08-18)
+
+### Corrections
+
+* **docs:** expliciter le modele de branches et corriger une affirmation fausse ([f4d9f12](https://github.com/Jihatech/oc-devops-p6-orion/commit/f4d9f121eddf0b74c2dac000a69e10eee1c7f6ad))
+
 ## [1.3.0](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.2.0...v1.3.0) (2026-08-18)
 
 ### Fonctionnalités
