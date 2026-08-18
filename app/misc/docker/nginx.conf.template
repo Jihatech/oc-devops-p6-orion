@@ -10,10 +10,35 @@
 #  2. relayer /api vers le backend, ce qui rend le frontend indépendant de
 #     l'adresse de l'API et permet d'utiliser la même image partout.
 
+# Journalisation STRUCTURÉE en JSON.
+#
+# Le format par défaut de nginx (« combined ») est du texte : une fois
+# collecté par Filebeat, il arrive dans Elasticsearch comme une chaîne
+# indivisible. On ne peut alors ni compter les erreurs 5xx, ni calculer un
+# temps de réponse — donc ni tableau de bord de disponibilité, ni alerte.
+#
+# En JSON, chaque champ devient interrogeable et agrégeable. C'est la
+# condition d'existence des tableaux de bord de la phase 5, et la réponse à
+# la lacune S7 de l'audit (aucune journalisation exploitable).
+log_format json_orion escape=json '{'
+    '"horodatage":"$time_iso8601",'
+    '"ip_client":"$remote_addr",'
+    '"methode":"$request_method",'
+    '"uri":"$uri",'
+    '"status":$status,'
+    '"octets":$body_bytes_sent,'
+    '"duree_s":$request_time,'
+    '"duree_amont_s":"$upstream_response_time",'
+    '"agent":"$http_user_agent",'
+    '"referent":"$http_referer"'
+'}';
+
 server {
     # Port 8080 et non 80 : un port privilégié (< 1024) exigerait des droits
     # root, incompatibles avec un conteneur non privilégié (constat A7).
     listen 8080;
+
+    access_log /var/log/nginx/access.log json_orion;
     server_name _;
 
     root /usr/share/nginx/html;

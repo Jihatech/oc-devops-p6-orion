@@ -1,0 +1,23 @@
+{
+  "name": "Performance - temps de reponse degrade",
+  "rule_type_id": ".es-query",
+  "consumer": "stackAlerts",
+  "enabled": true,
+  "schedule": { "interval": "1m" },
+  "tags": ["orion", "microcrm", "performance"],
+  "params": {
+    "searchType": "esQuery",
+    "index": ["orion-k8s-*"],
+    "timeField": "@timestamp",
+    "esQuery": "{\"query\":{\"range\":{\"json.duree_s\":{\"gt\":1}}}}",
+    "size": 100,
+    "timeWindowSize": 5,
+    "timeWindowUnit": "m",
+    "thresholdComparator": ">",
+    "threshold": [5],
+    "excludeHitsFromPreviousRun": true,
+    "aggType": "count",
+    "groupBy": "all"
+  },
+  "actions": []
+}

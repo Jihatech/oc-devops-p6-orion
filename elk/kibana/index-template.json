@@ -1,0 +1,136 @@
+{
+  "index_patterns": [
+    "orion-logs-*",
+    "orion-dora-*",
+    "orion-k8s-*"
+  ],
+  "priority": 200,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "5s"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "message": {
+          "type": "text"
+        },
+        "service": {
+          "type": "keyword"
+        },
+        "source_type": {
+          "type": "keyword"
+        },
+        "depot": {
+          "type": "keyword"
+        },
+        "indicateur": {
+          "type": "keyword"
+        },
+        "unite": {
+          "type": "keyword"
+        },
+        "niveau": {
+          "type": "keyword"
+        },
+        "valeur": {
+          "type": "double"
+        },
+        "container": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "image": {
+              "properties": {
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "log": {
+          "properties": {
+            "level": {
+              "type": "keyword"
+            },
+            "file": {
+              "properties": {
+                "path": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "json": {
+          "properties": {
+            "status": {
+              "type": "long"
+            },
+            "duration": {
+              "type": "double"
+            },
+            "request": {
+              "type": "keyword"
+            },
+            "method": {
+              "type": "keyword"
+            },
+            "uri": {
+              "type": "keyword"
+            },
+            "remote_ip": {
+              "type": "ip"
+            }
+          }
+        },
+        "kubernetes": {
+          "properties": {
+            "namespace": {
+              "type": "keyword"
+            },
+            "pod": {
+              "properties": {
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "container": {
+              "properties": {
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "labels": {
+              "properties": {
+                "app_kubernetes_io/component": {
+                  "type": "keyword"
+                },
+                "app_kubernetes_io/instance": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "_meta": {
+    "description": "Index orion-* : journaux applicatifs et indicateurs DORA.",
+    "gere_par": "scripts/elk-setup.sh",
+    "motif_mappings_explicites": "Un champ numerique infere comme texte devient inagregeable dans Kibana, et une erreur de mapping impose de reindexer."
+  }
+}

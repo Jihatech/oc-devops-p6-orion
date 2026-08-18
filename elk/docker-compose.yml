@@ -1,0 +1,129 @@
+# =============================================================================
+# Stack ELK — journalisation centralisée de MicroCRM
+# =============================================================================
+#
+# BUT
+#   Centraliser les journaux de l'application et les indicateurs DORA, afin de
+#   donner à Orion une observabilité qui n'existe pas aujourd'hui (lacune S7 de
+#   l'audit : aucun journal centralisé, aucune alerte, aucune traçabilité).
+#
+# COMPOSITION
+#   elasticsearch  stockage et indexation
+#   kibana         exploration, tableaux de bord et règles d'alerte
+#   filebeat       collecte des journaux des conteneurs Docker locaux
+#
+#   Les journaux des pods Kubernetes sont collectés séparément, par un
+#   DaemonSet Filebeat déployé DANS le cluster (voir k8s/filebeat-daemonset.yaml) :
+#   un Filebeat exécuté sur l'hôte n'a pas accès aux journaux des pods de
+#   Minikube, qui vivent à l'intérieur du nœud.
+#
+# DIMENSIONNEMENT — contrainte réelle et assumée
+#   Elasticsearch est gourmand. Sur un poste partageant sa mémoire avec
+#   Minikube (3 Go) et Docker Desktop, la stack est volontairement bridée :
+#   nœud unique, heap de 1 Go, pas de réplique. Ce dimensionnement est
+#   suffisant pour démontrer la démarche, et il est documenté comme tel — ce
+#   n'est pas une configuration de production.
+#
+# SÉCURITÉ — écart assumé et documenté
+#   `xpack.security.enabled=false` : la stack n'écoute que sur la boucle
+#   locale, dans un environnement de développement. Activer la sécurité
+#   imposerait de gérer certificats et mots de passe pour une démonstration
+#   locale, sans rien apprendre de plus. En production, la sécurité est
+#   OBLIGATOIRE — voir elk/README.md, section « Passage en production ».
+#
+# DÉMARRAGE
+#   docker compose -f elk/docker-compose.yml up -d
+#   Kibana : http://localhost:5601   (compter 2 à 3 minutes au premier lancement)
+# =============================================================================
+
+name: orion-elk
+
+services:
+  elasticsearch:
+    # Versions épinglées : une stack ELK qui change de version sans préavis
+    # casse les tableaux de bord et les correspondances d'index.
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: orion-elasticsearch
+    environment:
+      - node.name=orion-es
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      # Heap volontairement modeste : voir « Dimensionnement » ci-dessus.
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      # Le suivi d'utilisation sort du réseau : désactivé, la stack doit
+      # rester entièrement locale.
+      - telemetry.optIn=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - donnees-elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      # `yellow` et non `green` : sur un nœud unique, les index systèmes
+      # restent en jaune faute de réplique possible. Exiger `green`
+      # bloquerait indéfiniment le démarrage.
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    networks: [orion]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    container_name: orion-kibana
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=orion-kibana
+      - telemetry.optIn=false
+      # Clés de chiffrement des objets sauvegardés. Valeurs de développement,
+      # fixées ici pour que les règles d'alerte survivent à un redémarrage.
+      # En production, elles proviennent d'un gestionnaire de secrets.
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=orion_dev_cle_objets_sauvegardes_32car
+      - XPACK_REPORTING_ENCRYPTIONKEY=orion_dev_cle_reporting_32_caracteres_ok
+      - XPACK_SECURITY_ENCRYPTIONKEY=orion_dev_cle_securite_32_caracteres_ok
+    ports:
+      - "5601:5601"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status | grep -q '\"level\":\"available\"' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+    networks: [orion]
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.3
+    container_name: orion-filebeat
+    # Filebeat doit lire les journaux des conteneurs, propriété de root.
+    user: root
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      # Journaux des conteneurs Docker de l'hôte, en lecture seule.
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Répertoire d'ingestion des indicateurs DORA produits par
+      # scripts/dora-metrics.py au format NDJSON.
+      - ../docs/captures/dora:/ingestion/dora:ro
+      - donnees-filebeat:/usr/share/filebeat/data
+    command: ["--strict.perms=false"]
+    networks: [orion]
+
+volumes:
+  donnees-elasticsearch:
+  donnees-filebeat:
+
+networks:
+  orion:
+    name: orion-elk

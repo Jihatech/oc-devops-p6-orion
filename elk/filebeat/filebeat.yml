@@ -1,0 +1,106 @@
+# =============================================================================
+# Filebeat — collecte des journaux et des indicateurs
+# =============================================================================
+#
+# Deux sources distinctes, dans deux index distincts :
+#
+#   1. Journaux des conteneurs Docker de l'hôte  -> orion-logs-*
+#   2. Indicateurs DORA au format NDJSON         -> orion-dora-*
+#
+# Les séparer est délibéré : ils n'ont ni la même volumétrie, ni la même
+# durée de rétention utile, ni le même schéma. Les mélanger rendrait les
+# agrégations DORA illisibles au milieu du bruit applicatif.
+# =============================================================================
+
+filebeat.inputs:
+  # --- 1. Journaux des conteneurs Docker -------------------------------------
+  - type: filestream
+    id: conteneurs-docker
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    parsers:
+      # Les journaux Docker sont encapsulés en JSON ligne à ligne : sans ce
+      # décodage, chaque entrée arriverait comme une chaîne brute inexploitable.
+      - container:
+          stream: all
+          format: docker
+    fields:
+      source_type: conteneur
+      service: microcrm
+    fields_under_root: true
+
+  # --- 2. Indicateurs DORA ---------------------------------------------------
+  - type: filestream
+    id: indicateurs-dora
+    enabled: true
+    paths:
+      - /ingestion/dora/*.ndjson
+    parsers:
+      - ndjson:
+          target: ""
+          overwrite_keys: true
+          add_error_key: true
+    fields:
+      source_type: dora
+    fields_under_root: true
+
+# =============================================================================
+# Traitements
+# =============================================================================
+processors:
+  # Enrichit les journaux de conteneurs avec le nom et l'image du conteneur :
+  # sans cela, on ne saurait pas de quel service provient une ligne.
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
+  # Retire les champs d'infrastructure qui n'apportent rien à l'analyse et
+  # occupent de l'espace d'index.
+  - drop_fields:
+      fields: ["agent.ephemeral_id", "ecs.version", "input.type", "log.offset"]
+      ignore_missing: true
+
+  # Les journaux applicatifs de MicroCRM sont au format JSON (nginx) ou
+  # texte (Spring Boot). On tente le décodage JSON sans échouer sur le texte.
+  - decode_json_fields:
+      fields: ["message"]
+      target: "json"
+      overwrite_keys: false
+      add_error_key: false
+      process_array: false
+      max_depth: 2
+
+# =============================================================================
+# Destination
+# =============================================================================
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  # Aiguillage vers deux index selon la source, conformément au découpage
+  # expliqué en tête de fichier.
+  indices:
+    - index: "orion-dora-%{+yyyy.MM.dd}"
+      when.equals:
+        source_type: "dora"
+    - index: "orion-logs-%{+yyyy.MM.dd}"
+
+# Modèle d'index : géré par scripts/elk-setup.sh, PAS par Filebeat.
+#
+# Motif — défaut rencontré et corrigé : Filebeat 8 crée par défaut un
+# « data stream », et refusait de démarrer avec l'erreur
+#   « no matching index template found for data stream [orion] »
+# parce que la sortie est configurée en index CLASSIQUES (output.indices),
+# afin de séparer les journaux applicatifs des indicateurs DORA.
+#
+# Reprendre la main sur le modèle règle le conflit et apporte un bénéfice :
+# les types de champs sont déclarés explicitement, ce qui évite qu'un champ
+# numérique soit inféré comme texte et devienne inagrégeable dans Kibana —
+# une erreur de mapping ne se corrige pas après coup, elle impose de
+# réindexer.
+setup.template.enabled: false
+
+# Les tableaux de bord sont versionnés dans elk/kibana/ et importés par
+# scripts/elk-setup.sh : le chargement automatique de Filebeat est donc inutile.
+setup.dashboards.enabled: false
+setup.ilm.enabled: false
+
+logging.level: info

@@ -1,0 +1,66 @@
+===== STACK ELK — ETAT VERIFIE =====
+Date : 2026-08-18T20:00:54Z
+
+--- 1. Sante du cluster ---
+  statut: green | noeuds: 1 | shards actifs: 44
+
+--- 2. Index Orion ---
+  orion-dora-2026.08.18     4  14.6kb
+  orion-k8s-2026.08.18    375 445.9kb
+  orion-logs-2026.06.21    72  30.8kb
+  orion-logs-2026.06.26    17    19kb
+  orion-logs-2026.06.29    18    19kb
+  orion-logs-2026.07.14 76567    14mb
+  orion-logs-2026.07.18    22  20.2kb
+  orion-logs-2026.08.08  4614   1.1mb
+  orion-logs-2026.08.09 18582   3.1mb
+  orion-logs-2026.08.10 25244   4.1mb
+  orion-logs-2026.08.11 11783     2mb
+  orion-logs-2026.08.12 10260   1.9mb
+  orion-logs-2026.08.13 19782   3.2mb
+  orion-logs-2026.08.14 12041     2mb
+  orion-logs-2026.08.18  7345   3.5mb
+
+--- 3. Vues de donnees Kibana ---
+  orion-logs-*     Journaux des conteneurs
+  orion-k8s-*      Journaux des pods Kubernetes
+  orion-dora-*     Indicateurs DORA
+
+--- 4. Tableau de bord et visualisations ---
+  lens         Disponibilité — codes de réponse HTTP
+  lens         Performance — temps de réponse (médiane et 95e centile)
+  lens         Sécurité — erreurs client 4xx par URI
+  lens         Journaux par composant
+  lens         Indicateurs DORA
+  dashboard    MicroCRM — disponibilité, performance et sécurité
+
+--- 5. Regles d'alerte ---
+  Disponibilite - erreurs serveur 5xx           activee | fenetre 5m | seuil > [0]
+  Securite - rafale d'erreurs client 4xx        activee | fenetre 5m | seuil > [20]
+  Performance - temps de reponse degrade        activee | fenetre 5m | seuil > [5]
+
+--- 6. Donnees reellement agregees (ce qu'affichent les panneaux) ---
+  Disponibilite — codes HTTP :
+    200    90 requetes
+    404    30 requetes
+  Performance — temps de reponse :
+    p50.0   0.0000 s
+    p95.0   0.0000 s
+    p99.0   0.0000 s
+  Journaux par composant :
+    front            320 lignes
+    back             49 lignes
+    back-migration   6 lignes
+  URI les plus appelees :
+    /api/inexistant          30
+    /api/organizations       30
+    /api/persons             30
+    /index.html              30
+
+--- 7. Indicateurs DORA indexes ---
+    deployment_frequency     12.71      par_semaine  n/d
+    lead_time                36.74      heures       High
+    change_failure_rate      44.4       pourcent     Low
+    mttr                     0.11       heures       Elite
+
+===== FIN =====

@@ -1,0 +1,23 @@
+{
+  "name": "Disponibilite - erreurs serveur 5xx",
+  "rule_type_id": ".es-query",
+  "consumer": "stackAlerts",
+  "enabled": true,
+  "schedule": { "interval": "1m" },
+  "tags": ["orion", "microcrm", "disponibilite"],
+  "params": {
+    "searchType": "esQuery",
+    "index": ["orion-k8s-*"],
+    "timeField": "@timestamp",
+    "esQuery": "{\"query\":{\"range\":{\"json.status\":{\"gte\":500}}}}",
+    "size": 100,
+    "timeWindowSize": 5,
+    "timeWindowUnit": "m",
+    "thresholdComparator": ">",
+    "threshold": [0],
+    "excludeHitsFromPreviousRun": true,
+    "aggType": "count",
+    "groupBy": "all"
+  },
+  "actions": []
+}
