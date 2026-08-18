@@ -645,11 +645,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          # Chaque greffon doit etre installe avec -p : sans cela, npx les
+          # interprete comme des ARGUMENTS de semantic-release, qui refuse.
           npx --yes \
-            semantic-release@24.2.3 \
-            @semantic-release/changelog@6.0.3 \
-            @semantic-release/git@10.0.1 \
-            conventional-changelog-conventionalcommits@8.0.0
+            -p semantic-release@24.2.3 \
+            -p @semantic-release/changelog@6.0.3 \
+            -p @semantic-release/git@10.0.1 \
+            -p conventional-changelog-conventionalcommits@8.0.0 \
+            semantic-release
           # La version publiée est relue depuis le dernier tag Git : c'est la
           # seule source fiable, semantic-release ne l'exposant pas
           # directement en sortie.
