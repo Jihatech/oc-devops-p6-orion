@@ -363,8 +363,9 @@ traçabilité des livraisons.
 | Une empreinte d'image inventée dans un fichier de configuration | Un identifiant plausible mais faux donne l'apparence de la rigueur | Les empreintes sont désormais résolues depuis le registre avant usage |
 | Des preuves d'exécution absentes du dépôt public | Une règle d'exclusion les avait masquées ; tout paraissait normal en local | Un contrôle vérifie que chaque lien de la documentation pointe vers un fichier **réellement versionné** |
 | Un calcul d'indicateur donnant un résultat aberrant | Le code était juste, la définition de la période ne l'était pas | Tout résultat portant sur moins de quatorze jours est marqué non représentatif |
+| Un pic de 21,8 secondes attribué à l'application | Une **mesure impossible** — durée négative — révélant un saut d'horloge de la machine virtuelle, et non un défaut applicatif | Les mesures incohérentes sont détectées et exclues de l'interprétation, avec distinction entre ce qui est prouvé et ce qui est supposé |
 
-**Le point commun de ces six incidents** : cinq sur six étaient **invisibles sur le poste de
+**Le point commun de ces sept incidents** : la plupart étaient **invisibles sur le poste de
 développement** et n'ont été révélés que par l'automatisation. C'est l'argument le plus concret en
 faveur de la démarche chez Orion, où tout est aujourd'hui exécuté à la main sur des postes.
 

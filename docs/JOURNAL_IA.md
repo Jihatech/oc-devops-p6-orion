@@ -673,15 +673,39 @@ Un piège a failli fausser ce test : `helm upgrade` réattribue le NodePort si c
 fixé, ce qui aurait coupé k6 en plein test — et l'on aurait imputé à l'application une coupure
 provoquée par l'outillage. Le chart accepte désormais un `service.nodePort` explicite.
 
-### L'anomalie que je n'ai pas maquillée
+### L'anomalie que je n'ai pas maquillée — et dont mon hypothèse était fausse
 
-Un maximum de **21,8 secondes** revient à l'identique sur plusieurs campagnes (21,9 / 21,8 / 21,8),
-y compris **sans déploiement en cours**. Elle ne concerne qu'une requête par campagne et n'affecte
-ni le 99e centile (3,1 ms) ni le taux d'erreur.
+Un maximum de **21,8 secondes** revenait à l'identique sur plusieurs campagnes, y compris **sans
+déploiement en cours**. Je l'avais consigné comme constat à investiguer, en avançant l'hypothèse
+d'une reprise de connexion TCP.
 
-Je n'ai pas d'explication certaine — l'hypothèse la plus probable est une expiration puis reprise de
-connexion TCP au premier échange avec le NodePort. C'est consigné comme constat à investiguer avant
-toute mise en production, plutôt que passé sous silence ou expliqué à tort.
+**Cette hypothèse était fausse**, et c'est la relecture des résultats bruts qui l'a montré.
+
+Le palier « pointe » affiche un temps de réponse **minimal de −21 805,8 ms** face à un maximum de
+**+21 804,4 ms** : **1,4 ms d'écart entre les deux amplitudes**. Or une durée négative est
+physiquement impossible — aucune requête ne se termine avant d'avoir commencé. Ce n'est donc pas un
+comportement de l'application, mais un **saut d'horloge pendant la mesure**.
+
+Corroboration directe, obtenue en trois relevés successifs : l'horloge de la machine virtuelle
+Docker **retarde de 21 à 22 secondes** sur celle de l'hôte, écart confirmé sur le nœud Minikube.
+Sa resynchronisation décale l'horodatage de la requête en cours — vers le haut si l'horloge avance,
+vers le bas si elle recule.
+
+**L'application est hors de cause.**
+
+Ce que cet épisode apprend, et qui vaut plus que la correction elle-même : j'avais **signalé**
+l'anomalie sans la **résoudre**, en proposant une explication plausible mais non vérifiée. Une
+hypothèse plausible avancée sans preuve est du même ordre que le calcul des 236 déploiements par
+semaine — un énoncé bien formé, et faux. La donnée qui tranchait, le minimum négatif, était dans le
+fichier depuis le début : je ne l'avais pas regardée.
+
+**Septième garde-fou** : `scripts/charge/resumer.py` détecte désormais les mesures impossibles et
+distingue deux niveaux de certitude — une durée négative *prouve* le saut d'horloge, un maximum
+isolé au-delà de cent fois le 99e centile ne fait que le *suggérer*. Les maximums concernés sont
+marqués et exclus de l'interprétation ; les centiles, eux, restent valides.
+
+> Sans ce contrôle, le rapport de performance aurait annoncé un pic à 21,8 secondes imputé à
+> l'application d'Orion, alors qu'il provient de l'environnement de mesure.
 
 ### Incidents de mise au point
 

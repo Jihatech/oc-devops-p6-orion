@@ -81,6 +81,38 @@ def charger(repertoire: Path) -> list[dict]:
         p95 = duree.get("p(95)")
         taux = echecs.get("rate", 0) or 0
 
+        # GARDE-FOU — deux niveaux de certitude, volontairement distingués.
+        #
+        # 1. PREUVE : une durée de requête NÉGATIVE est physiquement
+        #    impossible ; aucune requête ne se termine avant d'avoir commencé.
+        #    Sa présence établit que la mesure a subi un saut d'horloge —
+        #    typiquement la resynchronisation de la machine virtuelle Docker,
+        #    dont l'horloge retarde ici de 21 à 22 secondes sur l'hôte.
+        #    On regarde AUSSI la métrique globale : le saut peut survenir
+        #    pendant l'échauffement et ne corrompre qu'un maximum reporté.
+        #
+        # 2. SOUPÇON : un maximum très supérieur au 99e centile est une
+        #    valeur isolée. C'est un indice, pas une preuve : on le signale
+        #    comme tel sans affirmer sa cause.
+        #
+        # Cette distinction est le fond du garde-fou : publier un maximum
+        # aberrant comme s'il caractérisait l'application reviendrait à lui
+        # imputer une lenteur qui n'a jamais eu lieu.
+        minimum = duree.get("min")
+        minimum_global = duree_globale.get("min")
+        negatifs = [x for x in (minimum, minimum_global) if x is not None and x < 0]
+        horloge_prouvee = bool(negatifs)
+
+        maximum = duree.get("max")
+        p99_valeur = duree.get("p(99)")
+        aberrant = (
+            maximum is not None
+            and p99_valeur is not None
+            and p99_valeur > 0
+            and maximum > 100 * p99_valeur
+        )
+        coherente = not (horloge_prouvee or aberrant)
+
         resultats.append({
             "palier": donnees.get("palier", fichier.stem),
             "vus": parametres.get("utilisateurs_virtuels"),
@@ -93,6 +125,14 @@ def charger(repertoire: Path) -> list[dict]:
             "p95": p95,
             "p99": duree.get("p(99)"),
             "max": duree.get("max"),
+            # On affiche le minimum qui ÉTABLIT l'artefact — le plus négatif des
+            # deux —, sans quoi le tableau afficherait une valeur positive tout en
+            # affirmant qu'une durée négative a été relevée.
+            "min": min(negatifs) if negatifs else minimum,
+            "min_global": minimum_global,
+            "horloge_prouvee": horloge_prouvee,
+            "aberrant": aberrant,
+            "coherente": coherente,
             "moyenne": duree.get("avg"),
             "p95_avec_echauffement": duree_globale.get("p(95)"),
             "taux_erreur": taux,
@@ -140,11 +180,56 @@ def rendre(resultats: list[dict]) -> str:
 
     for r in resultats:
         verdict = "✅" if (r["verdict_p95"] and r["verdict_erreur"]) else "❌"
+        # Le maximum est marqué lorsqu'il provient d'une mesure incohérente :
+        # il ne doit pas être lu comme une performance de l'application.
+        maximum = ms(r["max"]) + (" ⚠️" if not r["coherente"] else "")
         lignes.append(
             f"| **{r['palier']}** | {r['vus']} | {r['requetes']:.0f} | "
             f"{r['debit']:.1f} req/s | {ms(r['p50'])} | **{ms(r['p95'])}** | {ms(r['p99'])} | "
-            f"{ms(r['max'])} | {r['taux_erreur'] * 100:.2f} % | {verdict} |"
+            f"{maximum} | {r['taux_erreur'] * 100:.2f} % | {verdict} |"
         )
+
+    incoherents = [r for r in resultats if not r["coherente"]]
+    if incoherents:
+        lignes += [
+            "",
+            "## ⚠️ Maximums non exploitables — saut d'horloge",
+            "",
+            "Les paliers "
+            + ", ".join(f"**{r['palier']}**" for r in incoherents)
+            + " présentent un maximum qui ne peut pas être attribué à l'application. Deux niveaux "
+            "de certitude sont distingués ci-dessous, et le second n'est pas présenté comme le "
+            "premier.",
+            "",
+            "| Palier | Minimum relevé | Maximum relevé | Somme | Niveau de certitude |",
+            "|---|---|---|---|---|",
+        ]
+        for r in incoherents:
+            somme = (r["min"] or 0) + (r["max"] or 0)
+            niveau = "durée négative — **prouvé**" if r["horloge_prouvee"] else "maximum isolé — **soupçon**"
+            lignes.append(
+                f"| {r['palier']} | {ms(r['min'])} | {ms(r['max'])} | {ms(somme)} | {niveau} |"
+            )
+        lignes += [
+            "",
+            "**Diagnostic** : l'horloge de la machine virtuelle Docker retarde de 21 à 22 secondes "
+            "sur celle de l'hôte — écart mesuré directement. Sa resynchronisation pendant une "
+            "campagne décale l'horodatage de la requête en cours : celle-ci ressort avec une durée "
+            "aberrante, positive si l'horloge avance, négative si elle recule.",
+            "",
+            "La quasi-symétrie relevée sur le palier **pointe** en est la signature : "
+            "−21 805,8 ms et +21 804,4 ms, soit **1,4 ms d'écart entre les deux amplitudes**.",
+            "",
+            "**Conséquence sur la lecture des résultats** : les colonnes *Maximum* marquées ⚠️ sont "
+            "des artefacts de mesure et **ne caractérisent pas l'application**. Les médianes, les "
+            "centiles et les taux d'erreur, eux, restent valides : une poignée de valeurs aberrantes "
+            "sur plusieurs dizaines de milliers de requêtes ne déplace pas un centile.",
+            "",
+            "> C'est la raison d'être de ce contrôle : sans lui, le rapport aurait annoncé un "
+            "pic à 21,8 secondes imputé à l'application, alors qu'il provient de "
+            "l'environnement de mesure. Une mesure impossible doit être signalée, pas publiée.",
+            "",
+        ]
 
     lignes += [
         "",
@@ -173,6 +258,22 @@ def rendre(resultats: list[dict]) -> str:
             f"| p95 de l'API | {ms(r['api_p95'])} |",
             "",
         ]
+        if r["horloge_prouvee"]:
+            lignes += [
+                f"> ⚠️ **Maximum non exploitable** : le minimum relevé est {ms(r['min'])}, valeur "
+                f"physiquement impossible. La mesure a subi un saut d'horloge — voir la section "
+                f"dédiée. Les centiles et le taux d'erreur, eux, restent valides.",
+                "",
+            ]
+        elif not r["coherente"]:
+            lignes += [
+                f"> ⚠️ **Maximum isolé** : {ms(r['max'])} contre un 99e centile à "
+                f"{ms(r['p99'])}, soit un écart de plus de deux ordres de grandeur. Cette valeur "
+                f"unique n'est pas représentative. L'environnement de mesure ayant par ailleurs "
+                f"produit des durées négatives prouvées, la même cause est probable — mais elle "
+                f"n'est pas établie pour ce palier.",
+                "",
+            ]
         if r["p95_avec_echauffement"] is not None and r["p95"] is not None:
             ecart = r["p95_avec_echauffement"] - r["p95"]
             if ecart > 1:
@@ -343,9 +444,18 @@ def main(argv: list[str] | None = None) -> int:
 
     for r in resultats:
         etat = "OK " if (r["verdict_p95"] and r["verdict_erreur"]) else "HORS SEUIL"
+        marque = "  [max non exploitable : saut d'horloge]" if not r["coherente"] else ""
         print(
             f"  {r['palier']:<12} {r['vus']:>3} VU  "
-            f"p95={ms(r['p95']):>9}  erreurs={r['taux_erreur'] * 100:.2f}%  {etat}"
+            f"p95={ms(r['p95']):>9}  erreurs={r['taux_erreur'] * 100:.2f}%  {etat}{marque}"
+        )
+
+    incoherents = [r["palier"] for r in resultats if not r["coherente"]]
+    if incoherents:
+        print(
+            f"[AVERT] durée minimale négative sur : {', '.join(incoherents)}. "
+            "Les maximums de ces paliers sont des artefacts d'horloge, pas des mesures.",
+            file=sys.stderr,
         )
     return 0
 

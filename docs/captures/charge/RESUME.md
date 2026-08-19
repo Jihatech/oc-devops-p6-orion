@@ -22,8 +22,26 @@
 |---|---|---|---|---|---|---|---|---|---|
 | **nominal** | 5 | 1800 | 11.9 req/s | 2.1 ms | **3.1 ms** | 5.6 ms | 14.2 ms | 0.00 % | ✅ |
 | **soutenu** | 25 | 13467 | 64.3 req/s | 1.2 ms | **2.6 ms** | 4.9 ms | 187.8 ms | 0.00 % | ✅ |
-| **pointe** | 50 | 27000 | 128.0 req/s | 1.1 ms | **2.3 ms** | 3.5 ms | 21.80 s | 0.00 % | ✅ |
-| **saturation** | 300 | 52167 | 190.4 req/s | 297.1 ms | **5.00 s** | 21.89 s | 34.59 s | 5.83 % | ❌ |
+| **pointe** | 50 | 27000 | 128.0 req/s | 1.1 ms | **2.3 ms** | 3.5 ms | 21.80 s ⚠️ | 0.00 % | ✅ |
+| **saturation** | 300 | 52167 | 190.4 req/s | 297.1 ms | **5.00 s** | 21.89 s | 34.59 s ⚠️ | 5.83 % | ❌ |
+
+## ⚠️ Maximums non exploitables — saut d'horloge
+
+Les paliers **pointe**, **saturation** présentent un maximum qui ne peut pas être attribué à l'application. Deux niveaux de certitude sont distingués ci-dessous, et le second n'est pas présenté comme le premier.
+
+| Palier | Minimum relevé | Maximum relevé | Somme | Niveau de certitude |
+|---|---|---|---|---|
+| pointe | -21805.8 ms | 21.80 s | -1.4 ms | durée négative — **prouvé** |
+| saturation | -21687.5 ms | 34.59 s | 12.91 s | durée négative — **prouvé** |
+
+**Diagnostic** : l'horloge de la machine virtuelle Docker retarde de 21 à 22 secondes sur celle de l'hôte — écart mesuré directement. Sa resynchronisation pendant une campagne décale l'horodatage de la requête en cours : celle-ci ressort avec une durée aberrante, positive si l'horloge avance, négative si elle recule.
+
+La quasi-symétrie relevée sur le palier **pointe** en est la signature : −21 805,8 ms et +21 804,4 ms, soit **1,4 ms d'écart entre les deux amplitudes**.
+
+**Conséquence sur la lecture des résultats** : les colonnes *Maximum* marquées ⚠️ sont des artefacts de mesure et **ne caractérisent pas l'application**. Les médianes, les centiles et les taux d'erreur, eux, restent valides : une poignée de valeurs aberrantes sur plusieurs dizaines de milliers de requêtes ne déplace pas un centile.
+
+> C'est la raison d'être de ce contrôle : sans lui, le rapport aurait annoncé un pic à 21,8 secondes imputé à l'application, alors qu'il provient de l'environnement de mesure. Une mesure impossible doit être signalée, pas publiée.
+
 
 ## Détail par palier
 
@@ -78,6 +96,8 @@ Mesure de 3m après un échauffement de 30s, exécutée le 2026-08-19 à 15:59:2
 | p95 du frontend | 0.5 ms |
 | p95 de l'API | 2.6 ms |
 
+> ⚠️ **Maximum non exploitable** : le minimum relevé est -21805.8 ms, valeur physiquement impossible. La mesure a subi un saut d'horloge — voir la section dédiée. Les centiles et le taux d'erreur, eux, restent valides.
+
 ### Palier « saturation » — 300 utilisateurs virtuels
 
 Mesure de 4m après un échauffement de 30s, exécutée le 2026-08-19 à 16:07:25 UTC.
@@ -94,6 +114,8 @@ Mesure de 4m après un échauffement de 30s, exécutée le 2026-08-19 à 16:07:2
 | Taux d'erreur | 5.83 % |
 | p95 du frontend | 592.3 ms |
 | p95 de l'API | 5.00 s |
+
+> ⚠️ **Maximum non exploitable** : le minimum relevé est -21687.5 ms, valeur physiquement impossible. La mesure a subi un saut d'horloge — voir la section dédiée. Les centiles et le taux d'erreur, eux, restent valides.
 
 ## Le palier de saturation — pourquoi il « échoue » volontairement
 

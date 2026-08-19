@@ -47,14 +47,27 @@ Ce que cela démontre :
   - les sondes empêchent le Service d'aiguiller vers un pod non prêt ;
   - le Job de migration s'exécute avant la bascule sans interrompre le trafic.
 
-ANOMALIE OBSERVÉE — signalée, non masquée :
-  Le maximum relevé est de 21,8 s sur une requête. Cette valeur réapparaît
-  à l'identique sur plusieurs campagnes (21,9 s / 21,8 s / 21,8 s), y compris
-  SANS déploiement en cours : elle n'est donc pas imputable à la bascule.
-  Elle concerne une requête isolée par campagne et n'affecte ni le p99
-  (3,1 ms) ni le taux d'erreur. Hypothèse la plus probable : expiration puis
-  reprise d'une connexion TCP à l'établissement du premier échange avec le
-  NodePort. À investiguer avant toute mise en production ; sans incidence
-  sur les conclusions de cette campagne.
+ANOMALIE OBSERVÉE PUIS ÉLUCIDÉE :
+  Le maximum relevé est de 21,8 s sur une requête, valeur réapparaissant à
+  l'identique sur plusieurs campagnes, y compris SANS déploiement en cours.
+
+  Première hypothèse formulée : reprise d'une connexion TCP. ELLE ÉTAIT
+  FAUSSE. L'examen des résultats bruts a révélé un temps de réponse MINIMAL
+  NÉGATIF de -21 805,8 ms sur le palier « pointe », face à un maximum de
+  +21 804,4 ms — soit 1,4 ms d'écart entre les deux amplitudes.
+
+  Une durée négative est physiquement impossible : aucune requête ne se
+  termine avant d'avoir commencé. La cause est donc un SAUT D'HORLOGE
+  pendant la mesure, et non un comportement de l'application.
+
+  Corroboration directe : l'horloge de la machine virtuelle Docker retarde
+  de 21 à 22 secondes sur celle de l'hôte (écart mesuré sur trois relevés
+  successifs, et confirmé sur le nœud Minikube). Sa resynchronisation
+  décale l'horodatage de la requête en cours.
+
+  CONCLUSION : l'application est hors de cause. Les centiles et les taux
+  d'erreur restent valides ; seuls les maximums de « pointe » et
+  « saturation » sont des artefacts, désormais signalés automatiquement
+  par scripts/charge/resumer.py.
 
 ===== FIN =====
