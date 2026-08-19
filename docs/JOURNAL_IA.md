@@ -598,3 +598,104 @@ Un script qui produit un chiffre ne garantit pas que le chiffre veuille dire que
 ## Phase 6 — Consolidation des livrables
 
 *(à compléter)*
+
+## Complément — Tests de charge
+
+**Période** : 19/08/2026
+**Livrables** : `scripts/test-charge.sh`, `scripts/charge/scenario.js`, `scripts/charge/resumer.py`,
+preuves dans `docs/captures/charge/`
+
+### Pourquoi cette phase existe
+
+Le plan de tests écartait explicitement les tests de charge : sur une base HSQLDB en mémoire, les
+chiffres ne refléteraient aucune réalité de production. L'argument reste vrai pour les **capacités
+absolues** — mais il masquait ce qu'une campagne permet malgré tout de prouver : la disponibilité
+pendant une mise à jour, le déclenchement réel des alertes, et la position du point de rupture.
+
+La réserve a donc été **requalifiée, pas effacée**.
+
+### Deux décisions de méthode
+
+**1. Pas de `kubectl port-forward`.** C'est un proxy à connexion unique : sous 50 utilisateurs
+simultanés, il serait devenu lui-même le goulot d'étranglement, et l'on aurait mesuré le tunnel
+plutôt que l'application. Le Service est donc exposé en NodePort, et k6 s'exécute dans un conteneur
+attaché au réseau Docker de Minikube. Aucun intermédiaire entre l'outil de mesure et la cible.
+
+**2. Échauffement séparé de la mesure.** Les seuils portent uniquement sur la phase de mesure, via
+un filtre par étiquette. L'écart est mesurable : au premier palier, le 95e centile est de **3,1 ms**
+en phase mesurée contre **5,0 ms** échauffement inclus — et le tout premier appel de la campagne a
+pris **21,9 secondes**, le temps que la JVM démarre. Inclure cela aurait fait échouer un seuil que
+l'application respecte largement.
+
+### Le résultat contre-intuitif
+
+| Palier | Utilisateurs | Débit | 95e centile | Erreurs |
+|---|---|---|---|---|
+| nominal | 5 | 11,9 req/s | 3,1 ms | 0,00 % |
+| soutenu | 25 | 64,3 req/s | 2,6 ms | 0,00 % |
+| pointe | 50 | 128,0 req/s | **2,3 ms** | 0,00 % |
+
+**Le temps de réponse diminue quand la charge augmente.** Contre-intuitif au premier regard, mais
+explicable : les connexions sont déjà établies et le code est devenu « chaud ». Jusqu'à 50
+utilisateurs, l'application n'approche pas ses limites — le backend n'utilise que 97 millicœurs sur
+les 500 qui lui sont alloués.
+
+J'ai vérifié ce point avant de le publier, précisément parce qu'un résultat qui va dans le sens
+inverse de l'intuition est souvent le signe d'une erreur de mesure. Ici, c'en est un vrai.
+
+### Le palier de saturation — ajouté pour une raison précise
+
+Les trois paliers prévus étaient tous conformes, et donc **incapables de déclencher la moindre
+alerte**. Or une alerte configurée mais jamais éprouvée n'est qu'une intention.
+
+Un quatrième palier a donc été ajouté, à 300 utilisateurs virtuels, explicitement hors de tout
+usage réaliste et exclu du verdict. Il a produit ce qu'on attendait de lui :
+
+| Mesure au point de saturation | Valeur |
+|---|---|
+| 95e centile | **5,00 s** |
+| Taux d'erreur | **5,83 %** (502 et 504) |
+| Requêtes au-delà d'une seconde sur 5 min | **28 684** — seuil de la règle : 5 |
+
+**Deux alertes sont passées à l'état *Active*** : celle de performance et, à la surprise générale,
+celle de disponibilité — l'application renvoyait réellement des erreurs serveur. Le point de rupture
+se situe donc entre 50 et 300 utilisateurs, très au-delà des besoins d'Orion.
+
+### La preuve qui compte le plus
+
+Un `helm upgrade` a été déclenché **pendant** une campagne soutenue, portant au passage le frontend
+à deux répliques. Résultat : **13 500 requêtes, 64 req/s, 0,00 % d'erreur**.
+
+La disponibilité pendant une mise à jour n'est plus une propriété annoncée de la configuration :
+elle est mesurée sous trafic réel.
+
+Un piège a failli fausser ce test : `helm upgrade` réattribue le NodePort si celui-ci n'est pas
+fixé, ce qui aurait coupé k6 en plein test — et l'on aurait imputé à l'application une coupure
+provoquée par l'outillage. Le chart accepte désormais un `service.nodePort` explicite.
+
+### L'anomalie que je n'ai pas maquillée
+
+Un maximum de **21,8 secondes** revient à l'identique sur plusieurs campagnes (21,9 / 21,8 / 21,8),
+y compris **sans déploiement en cours**. Elle ne concerne qu'une requête par campagne et n'affecte
+ni le 99e centile (3,1 ms) ni le taux d'erreur.
+
+Je n'ai pas d'explication certaine — l'hypothèse la plus probable est une expiration puis reprise de
+connexion TCP au premier échange avec le NodePort. C'est consigné comme constat à investiguer avant
+toute mise en production, plutôt que passé sous silence ou expliqué à tort.
+
+### Incidents de mise au point
+
+| # | Symptôme | Cause | Correction |
+|---|---|---|---|
+| 1 | k6 ne trouvait pas son scénario | Git Bash réécrit les chemins POSIX : `/scenario/scenario.js` devenait `C:/Program Files/Git/scenario/...` | `MSYS_NO_PATHCONV=1`, sans effet hors Windows |
+| 2 | Résumé affichant 0 requête malgré 150 itérations | Les métriques k6 sont sous `.values`, et les sous-métriques filtrées portent l'étiquette **dans leur nom** | Lecture de `http_req_duration{phase:mesure}` |
+| 3 | Palier de saturation exécuté à 5 utilisateurs | Un remplacement de texte n'avait pas pris ; je ne l'avais pas vérifié | Insertion contrôlée, puis relecture de la fonction |
+
+### Usage de l'IA
+
+| Usage | Nature |
+|---|---|
+| Rédaction du scénario, du script et du générateur de synthèse | **Assistée par IA**, sur une conception que j'ai arrêtée (paliers, seuils, séparation échauffement/mesure) |
+| Choix méthodologiques | **Miens** — NodePort plutôt que port-forward, ajout du palier de saturation, exclusion de l'échauffement |
+| Interprétation des résultats | **Mienne** — y compris la vérification du résultat contre-intuitif avant publication |
+| Vérification | **Exécution réelle** : 5 campagnes, alertes déclenchées et capturées, mise à jour exécutée sous trafic |

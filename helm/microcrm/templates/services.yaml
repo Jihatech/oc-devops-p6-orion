@@ -33,6 +33,13 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePort }}
+      # Port fixé explicitement. Sans cela, Kubernetes en attribue un au
+      # hasard à chaque mise à jour : une campagne de charge en cours
+      # perdrait sa cible en plein test, et l'on mesurerait une coupure
+      # provoquée par l'outillage plutôt que par l'application.
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
   selector:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: {{ .Values.front.name }}

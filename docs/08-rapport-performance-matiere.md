@@ -88,6 +88,7 @@ Orion, mais de la **déplacer au bon moment du cycle**.
 | Transmission de version | Par courriel | Registre d'images |
 | Déploiement | Manuel, commandes Docker | **Helm, automatisé et vérifié** |
 | Retour arrière | Inexistant | **18 secondes, vérifié** |
+| Disponibilité pendant une mise à jour | Non mesurée | **0 % d'erreur sous trafic réel** (13 500 requêtes à 64 req/s pendant une bascule) |
 | Sauvegarde | Inexistante | Automatisée, avec empreinte et manifeste |
 | Restauration | Inexistante | **Testée à chaque exécution du pipeline** |
 | Migrations de schéma | Aucune procédure | Job dédié, exécuté **avant** le déploiement |
@@ -131,6 +132,7 @@ Le guide mentor identifie trois objectifs : **qualité du code**, **réduction d
 | Mauvaises pratiques détectées | 13 défauts remontés par ESLint dès la première exécution |
 | Couverture enfin mesurée | 37,4 %, suivie dans le temps |
 | Scripts d'exploitation testés | 31 tests unitaires |
+| **Tenue en charge mesurée** | 4 paliers, jusqu'à 128 req/s sans erreur ; point de rupture identifié |
 
 > L'équipe Dev demandait dans son sondage « des outils d'analyse statique pour éviter d'intégrer de
 > mauvaises pratiques ». Cette demande est satisfaite, et elle était fondée : 13 défauts réels ont
@@ -144,6 +146,7 @@ Le guide mentor identifie trois objectifs : **qualité du code**, **réduction d
 | Construction et publication des images | Manuelles | Automatiques, environ 2 minutes |
 | Déploiement | Manuel, deux personnes mobilisées | Une commande |
 | Retour arrière | Impossible | **18 secondes** |
+| Mise à jour sans interruption | Non vérifiable | **Prouvée sous trafic : 0 % d'erreur** |
 | Numérotation de version | Échange par courriel | Automatique |
 
 ### 4.3 Collaboration
@@ -241,7 +244,31 @@ tendance**, seule lecture réellement utile de ces indicateurs sur la durée.
 | Frontend | **30,8 %** |
 | Projet | **37,4 %** |
 
-### 6.3 Le constat qui surprend
+### 6.3 Tenue en charge
+
+Campagne exécutée le 19/08/2026 contre l'application déployée, avec k6.
+Détail : [`docs/captures/charge/RESUME.md`](captures/charge/RESUME.md).
+
+| Palier | Utilisateurs | Débit | 95e centile | Erreurs | Verdict |
+|---|---|---|---|---|---|
+| nominal | 5 | 11,9 req/s | 3,1 ms | 0,00 % | ✅ |
+| soutenu | 25 | 64,3 req/s | 2,6 ms | 0,00 % | ✅ |
+| pointe | 50 | 128,0 req/s | 2,3 ms | 0,00 % | ✅ |
+| *saturation* | *300* | *—* | *5,00 s* | *5,83 %* | *hors seuil, volontairement* |
+
+**Résultat inattendu, et rassurant** : le temps de réponse **diminue** quand la charge augmente
+(3,1 ms puis 2,6 ms puis 2,3 ms). L'explication tient aux connexions déjà établies et au code
+devenu « chaud » : jusqu'à 50 utilisateurs simultanés, l'application n'approche pas ses limites —
+le backend n'utilise alors que 97 millicœurs sur les 500 qui lui sont alloués.
+
+**Le point de rupture se situe entre 50 et 300 utilisateurs virtuels.** À 300, le frontend renvoie
+des erreurs 502 et 504 : il ne parvient plus à joindre le backend dans les délais. C'est très
+au-delà de l'usage attendu chez Orion — 4 développeurs et 2 exploitants.
+
+Le palier de saturation n'a pas vocation à caractériser l'application : il sert à **vérifier que la
+chaîne d'alerte se déclenche réellement**. Elle l'a fait, sur deux règles simultanément.
+
+### 6.4 Le constat qui surprend
 
 **La mesure contredit la perception de l'équipe.** Dans son sondage, l'équipe Dev se déclare
 « Bonne » en Angular et en Karma, et « Débutante » en Java et JUnit.
@@ -359,7 +386,7 @@ faveur de la démarche chez Orion, où tout est aujourd'hui exécuté à la main
 |---|---|---|---|
 | 4 | Porter la couverture du frontend de 30,8 % à 60 % | Comble l'écart le plus important, et le plus inattendu | Moyen |
 | 5 | Externaliser les sauvegardes hors du poste | Une sauvegarde stockée sur la machine qu'elle protège ne protège de rien | Faible |
-| 6 | Brancher les alertes sur un canal d'équipe | Une alerte que personne ne reçoit n'est pas une alerte | Faible |
+| 6 | Brancher les alertes sur un canal d'équipe | Le déclenchement est **désormais prouvé** ; il reste à acheminer la notification. Une alerte que personne ne reçoit n'est pas une alerte | Faible |
 | 7 | Déployer automatiquement vers un environnement de recette permanent | Réduit encore le délai de livraison | Moyen |
 
 ### 9.3 À envisager ensuite

@@ -85,8 +85,12 @@ frontend.
 
 **À lire avec précaution.** Ces temps sont ceux d'un cluster local sollicité par `curl`, sans
 latence réseau ni charge concurrente. Ils prouvent que la **mesure fonctionne** — la donnée est
-structurée, indexée et agrégeable — mais ne disent rien de la tenue en charge réelle. Un test de
-charge n'aurait de sens qu'après migration vers PostgreSQL (voir `docs/04-plan-tests.md` §2.2).
+structurée, indexée et agrégeable.
+
+La tenue en charge a depuis été mesurée pour de bon : voir
+[`docs/captures/charge/RESUME.md`](../charge/RESUME.md), qui rapporte 128 requêtes par seconde
+sans erreur et situe le point de rupture. C'est également cette campagne qui a **déclenché les
+alertes pour de vrai**.
 
 ### Sécurité
 

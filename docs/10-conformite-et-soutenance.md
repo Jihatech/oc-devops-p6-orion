@@ -93,6 +93,8 @@ authentification.
 | **Tableaux de bord configurés** | 1 tableau de bord, 5 visualisations — [`captures/elk/`](captures/elk/) |
 | **Indicateurs DORA mesurés et interprétés** | 4 indicateurs sur données réelles — [`captures/dora/`](captures/dora/) |
 | **Alertes** couvrant disponibilité, performance, sécurité | 3 règles actives, seuils différenciés — [`captures/elk/README.md`](captures/elk/README.md) |
+| **Alertes réellement déclenchées** | 2 alertes passées à l'état *Active* sous charge — [`captures/charge/RESUME.md`](captures/charge/RESUME.md) |
+| **Tests de charge** avec seuils et verdict | 4 paliers, jusqu'à 128 req/s sans erreur — [`captures/charge/`](captures/charge/) |
 | Interprétation et documentation | [`08`](08-rapport-performance-matiere.md) §5 |
 
 ### 2.6 Optimiser la disponibilité et la performance du SI
@@ -161,7 +163,7 @@ ses manifestes sans tag explicite.
 | Journaux structurés et alertes | [`captures/elk/`](captures/elk/) |
 | Vulnérabilités : 86 à 0 | [`captures/images/README.md`](captures/images/README.md) |
 
-**À montrer** : les trois requêtes à 200 pendant l'échec du déploiement.
+**À montrer** : les trois requêtes à 200 pendant l'échec du déploiement, puis — plus convaincant encore — **0 % d'erreur sur 13 500 requêtes** pendant une mise à jour exécutée sous trafic réel, et les **deux alertes passées à l'état *Active*** lors du palier de saturation. L'alerting n'est pas seulement configuré : il a été éprouvé.
 
 ---
 

@@ -136,6 +136,10 @@ front:
 
 service:
   type: ClusterIP
+  # Port de nœud, utilisé uniquement lorsque type vaut NodePort. Le fixer rend
+  # la cible stable d'une mise à jour à l'autre — indispensable pour un test
+  # de charge qui traverse un déploiement.
+  nodePort: 30080
 
 # Ingress désactivé par défaut : sur Minikube, l'accès se fait par
 # `kubectl port-forward`, ce qui évite d'exiger l'addon ingress.

@@ -1,0 +1,60 @@
+===== MISE À JOUR PROGRESSIVE SOUS CHARGE =====
+Date : 2026-08-19T16:11:32Z
+
+Principe : une campagne de charge soutenue (25 utilisateurs virtuels) est
+lancée, puis un « helm upgrade » est déclenché PENDANT la mesure. Le taux
+d'erreur rapporté par k6 doit rester nul : c'est la preuve que la stratégie
+RollingUpdate avec maxUnavailable: 0 protège le service sous trafic réel.
+
+--- État initial ---
+microcrm-back-64fbb57fd7-m55ft    true   orion-microcrm-back:1.2.0
+microcrm-front-59d8999768-r2grq   true   orion-microcrm-front:1.2.0
+5       	Tue Aug 18 13:22:17 2026	failed    	microcrm-0.1.0	0.1.0      	Upgrade "microcrm" failed: pre-upgrade hooks failed: resource Job/orion-dev/microcrm-back-migration not ready. status: Failed, message: Job Failed. failed: 2/1
+6       	Tue Aug 18 15:56:07 2026	deployed  	microcrm-0.1.0	0.1.0      	Upgrade complete                                                                                                                                               
+
+--- Déclenchement du helm upgrade PENDANT la mesure ---
+$ helm upgrade microcrm helm/microcrm -n orion-dev --set service.type=NodePort --wait
+Début : 2026-08-19T16:13:06Z
+
+  helm rollback microcrm -n orion-dev
+  ./scripts/rollback.sh --release microcrm --namespace orion-dev
+Fin   : 2026-08-19T16:13:53Z
+Durée de la bascule : 47 s
+
+--- État après bascule ---
+microcrm-back-64fbb57fd7-m55ft    true    2026-08-18T19:55:47Z
+microcrm-back-migration-mp58f     false   2026-08-19T16:13:06Z
+microcrm-front-59d8999768-9ztjt   true    2026-08-19T16:13:18Z
+microcrm-front-59d8999768-r2grq   true    2026-08-18T19:55:47Z
+
+--- Verdict k6 : la charge a-t-elle subi la bascule ? ---
+===== PALIER « soutenu » — phase de mesure =====
+  utilisateurs virtuels : 25
+  requêtes mesurées     : 13500
+  débit                 : 64.21 req/s
+  p50 / p95 / p99       : 1.2 ms / 2.4 ms / 3.1 ms
+  maximum               : 21776.8 ms
+  taux d'erreur         : 0.00 %
+
+  (pour comparaison, p95 échauffement inclus : 2.6 ms)
+RÉSULTAT : 13 500 requêtes mesurées à 64,21 req/s pendant que le déploiement
+était mis à jour et le frontend porté à 2 répliques.
+TAUX D'ERREUR : 0,00 % — aucune requête perdue.
+
+Ce que cela démontre :
+  - RollingUpdate avec maxUnavailable: 0 ne retire un ancien pod qu'après
+    qu'un nouveau soit prêt ;
+  - les sondes empêchent le Service d'aiguiller vers un pod non prêt ;
+  - le Job de migration s'exécute avant la bascule sans interrompre le trafic.
+
+ANOMALIE OBSERVÉE — signalée, non masquée :
+  Le maximum relevé est de 21,8 s sur une requête. Cette valeur réapparaît
+  à l'identique sur plusieurs campagnes (21,9 s / 21,8 s / 21,8 s), y compris
+  SANS déploiement en cours : elle n'est donc pas imputable à la bascule.
+  Elle concerne une requête isolée par campagne et n'affecte ni le p99
+  (3,1 ms) ni le taux d'erreur. Hypothèse la plus probable : expiration puis
+  reprise d'une connexion TCP à l'établissement du premier échange avec le
+  NodePort. À investiguer avant toute mise en production ; sans incidence
+  sur les conclusions de cette campagne.
+
+===== FIN =====

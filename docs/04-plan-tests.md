@@ -48,6 +48,7 @@
 | **T14** | Test de fumée post-déploiement | Service HTTP en fonctionnement | `deploy-build.sh` (sonde) | Déploiement | Chaque déploiement | ✅ + rollback auto |
 | **T15** | Test de rollback | Retour à la version N-1 | `helm rollback` | Déploiement | À chaque release *(phase 4)* | ✅ |
 | **T16** | Re-scan des images publiées | Images déjà dans le registre | Trivy `image` | Planifié | **Hebdomadaire** *(phase 4)* | ⚠️ alerte |
+| **T17** | **Test de charge** | Chaîne complète via le Service Kubernetes | k6 0.55 en conteneur | Manuel | À chaque évolution d'architecture | ✅ seuils p95 et erreurs |
 
 ### 2.2 Ce qui est délibérément **hors périmètre**
 
@@ -58,10 +59,40 @@ puis écartés, avec leur motif :
 | Type de test | ❌ Motif d'exclusion | Condition de réintroduction |
 |---|---|---|
 | **Tests E2E** (Cypress/Playwright) | Périmètre fonctionnel minimal (CRUD personnes/organisations) ; coût de mise en place et de maintenance sans commune mesure avec le gain. T5 à T7 plus le test de fumée T14 couvrent l'essentiel du risque. | Dès que des parcours multi-écrans à enjeu apparaissent |
-| **Tests de charge** (k6, JMeter) | L'application tourne sur **HSQLDB en mémoire** (constat A1) : les chiffres mesurés ne refléteraient aucune réalité de production, et induiraient en erreur. | **Après** migration vers PostgreSQL |
 | **DAST** (OWASP ZAP) | Exige un environnement déployé et stable dans la CI ; prématuré tant que la chaîne de déploiement n'est pas fiabilisée. | Une fois le déploiement Kubernetes stabilisé (phase 4) |
 | **Tests de mutation** (PIT) | Pertinents seulement une fois une couverture significative atteinte ; ici la couverture est le problème, pas sa qualité. | Au-delà de 70 % de couverture backend |
 | **Tests de contrat** (Pact) | Un seul consommateur, un seul producteur, développés par la même équipe. | En cas d'ouverture de l'API à des tiers |
+
+### 2.3 Le test de charge (T17) — paliers et seuils
+
+Ajouté après la campagne exécutée le 19/08/2026. Preuves complètes :
+[`docs/captures/charge/RESUME.md`](captures/charge/RESUME.md).
+
+| Palier | Utilisateurs virtuels | Durée de mesure | Objet |
+|---|---|---|---|
+| **nominal** | 5 | 2 min | Usage courant de l'équipe d'Orion |
+| **soutenu** | 25 | 3 min | Pointe d'activité plausible |
+| **pointe** | 50 | 3 min | Au-delà de l'usage attendu |
+| **saturation** | 300 | 4 min | **Hors caractérisation** : vérifier que l'alerte se déclenche |
+
+| Seuil | Valeur | Justification |
+|---|---|---|
+| 95e centile | **< 500 ms** | Au-delà d'une demi-seconde, l'utilisateur perçoit l'attente. Le 95e centile plutôt que la moyenne : c'est la lenteur subie par les 5 % les moins bien servis qui compte. |
+| Taux d'erreur | **< 1 %** | Une erreur sur cent est déjà visible sur un CRM utilisé quotidiennement. |
+
+**Un échauffement précède chaque mesure et en est exclu.** Sans cette séparation, le démarrage à
+froid de la JVM écraserait les centiles et ferait échouer un seuil que l'application respecte en
+régime établi.
+
+**Le test n'est pas exécuté par le pipeline** : il exige un cluster déployé et dure plusieurs
+minutes, ce qui ferait sortir la chaîne de sa cible de 12 minutes. Il se lance manuellement, au même
+titre que `terraform apply`.
+
+> **Limite assumée** : ces tests s'exécutent sur l'environnement de démonstration
+> (**HSQLDB en mémoire**). Ils valident le comportement de la chaîne et du système sous charge —
+> disponibilité pendant une mise à jour, déclenchement des alertes, tenue des seuils, position du
+> point de rupture — mais **les capacités absolues devront être requalifiées après la migration
+> vers PostgreSQL**. La méthode, les seuils et l'outillage, eux, resteront valables.
 
 ---
 
@@ -74,6 +105,7 @@ puis écartés, avec leur motif :
 | *Push* / fusion sur `main` | ✅ | ✅ | ✅ complet | ✅ staging *(phase 4)* |
 | Tag `v*.*.*` | ✅ | ✅ | ✅ complet | ✅ prod, **manuel** *(phase 4)* |
 | Planifié — hebdomadaire | ❌ | ❌ | ✅ **T16 re-scan** | ❌ |
+| **Manuel** — après une évolution d'architecture | ❌ | ❌ | ❌ | **T17 charge** |
 
 **Justification du re-scan hebdomadaire (T16)** : une image est immuable, mais **elle devient
 vulnérable avec le temps**. Une CVE publiée après la construction n'est signalée par aucun commit.
@@ -236,7 +268,7 @@ aujourd'hui, la communication Dev↔Ops passe par e-mail et par oral, sans histo
 | 2 | Couvrir les **branches** (9,5 % aujourd'hui) | La couverture de lignes masque des chemins d'exécution entiers non testés | — |
 | 3 | **Testcontainers PostgreSQL** en test d'intégration | Supprime l'écart dev/prod (A1), la limite majeure de ce plan | Décision produit |
 | 4 | Tests de sécurité **DAST** (OWASP ZAP) | Complète l'analyse statique par une analyse dynamique | Déploiement stabilisé |
-| 5 | Tests de charge | Objective la tenue en charge | Migration PostgreSQL |
+| 5 | **Rejouer** les tests de charge sur base réelle | Requalifie les capacités absolues, aujourd'hui mesurées sur base en mémoire | Migration PostgreSQL |
 | 6 | Tests de mutation (PIT) | Mesure la qualité des tests, pas seulement leur quantité | Couverture > 70 % |
 
 **Fait notable pour le rapport de performance** : la mesure contredit la perception. L'équipe se
