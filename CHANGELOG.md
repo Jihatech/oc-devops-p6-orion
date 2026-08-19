@@ -2,6 +2,12 @@
 
 Ce fichier est genere automatiquement par semantic-release a partir des messages de commit conventionnels. Ne pas le modifier a la main.
 
+## [1.4.0](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.3.1...v1.4.0) (2026-08-19)
+
+### Fonctionnalités
+
+* **charge:** mesurer la tenue en charge et eprouver la chaine d'alerte ([d3c0860](https://github.com/Jihatech/oc-devops-p6-orion/commit/d3c0860ddd2f383426377a46326169679e8660ba))
+
 ## [1.3.1](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.3.0...v1.3.1) (2026-08-18)
 
 ### Corrections
