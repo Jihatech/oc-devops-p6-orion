@@ -2,6 +2,12 @@
 
 Ce fichier est genere automatiquement par semantic-release a partir des messages de commit conventionnels. Ne pas le modifier a la main.
 
+## [1.4.1](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.4.0...v1.4.1) (2026-08-19)
+
+### Corrections
+
+* **charge:** elucider l'anomalie des 21,8 s et detecter les mesures impossibles ([53a2d2b](https://github.com/Jihatech/oc-devops-p6-orion/commit/53a2d2b454ba726ea44b813c79249b8f4a34ad38))
+
 ## [1.4.0](https://github.com/Jihatech/oc-devops-p6-orion/compare/v1.3.1...v1.4.0) (2026-08-19)
 
 ### Fonctionnalités
